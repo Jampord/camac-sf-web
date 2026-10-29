@@ -16,5 +16,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Store UTC, display `Asia/Manila` (`src/lib/time.ts`). Slugs are immutable after creation (`src/lib/slug.ts`).
 - Public queries must filter `publishedAt: { not: null }, deletedAt: null`.
 - Prisma 7: client is generated to `src/generated/prisma` (gitignored); import from `@/generated/prisma/client`. Server code uses `db` from `src/lib/db.ts`.
+- When writing or reviewing React/Next.js code, apply the `vercel-react-best-practices` skill (`.agents/skills/vercel-react-best-practices/`; Claude Code entry point in `.claude/skills/`). The rules above and the Next 16 docs win where they conflict.
 - Public repo: never commit real emails, secrets or private church details.
 - Before committing: `npm run typecheck && npm run lint && npm test`.
