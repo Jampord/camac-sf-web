@@ -1,0 +1,116 @@
+// Data model for the CAMAC - San Fernando events app.
+// See docs/PROJECT_BRIEF.md §7. All DateTimes are stored in UTC and displayed in Asia/Manila.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+}
+
+enum Recurrence {
+  NONE
+  WEEKLY
+}
+
+enum StatType {
+  VIEW
+  COPY
+  SHARE
+}
+
+enum PrayerStatus {
+  NEW
+  PRAYED
+  ANSWERED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique // allowlist; set by seed script only
+  name          String?
+  role          Role     @default(ADMIN)
+  canViewPrayer Boolean  @default(false) // seed/DB only, no UI
+  createdAt     DateTime @default(now())
+  events        Event[]
+}
+
+model Ministry {
+  id     String  @id @default(cuid())
+  name   String  @unique // Youth, Women's, Men's, Music, Sunday School, CMT
+  events Event[]
+}
+
+model Event {
+  id              String      @id @default(cuid())
+  slug            String      @unique // set once at creation, never changed
+  title           String
+  description     String?
+  startsAt        DateTime
+  endsAt          DateTime
+  allDay          Boolean     @default(false)
+  venue           String // free text: church, home, outreach, resort
+  atChurchVenue   Boolean     @default(false)
+  contactPerson   String?
+  attire          String?
+  posterUrl       String? // Cloudinary
+  recurrence      Recurrence  @default(NONE)
+  recurrenceUntil DateTime?
+  skipDates       DateTime[] // cancelled weekly occurrences
+  ministryId      String? // null = Church-wide
+  ministry        Ministry?   @relation(fields: [ministryId], references: [id])
+  createdById     String
+  createdBy       User        @relation(fields: [createdById], references: [id])
+  stats           EventStat[]
+  publishedAt     DateTime? // null = draft
+  cancelledAt     DateTime? // page stays, "Cancelled" banner
+  cancelNote      String? // e.g. "Moved to Nov 22"
+  deletedAt       DateTime? // soft delete; purge after 30 days
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt // also versions the share image URL
+  // Phase 3: photosUrl String?  (link to the Facebook album)
+
+  @@index([publishedAt, deletedAt, startsAt])
+}
+
+model EventStat {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  type      StatType
+  createdAt DateTime @default(now())
+
+  @@index([eventId, type, createdAt])
+}
+
+model PrayerRequest {
+  id              String       @id @default(cuid())
+  body            String
+  name            String?
+  contact         String?
+  shareConsent    Boolean      @default(false)
+  status          PrayerStatus @default(NEW)
+  keepAsTestimony Boolean      @default(false)
+  archivedAt      DateTime?
+  createdAt       DateTime     @default(now())
+}
+
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  ipHash    String
+  route     String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, route, createdAt])
+}
+
+model Setting {
+  key   String @id // e.g. "metricWindowStart"
+  value String
+}
