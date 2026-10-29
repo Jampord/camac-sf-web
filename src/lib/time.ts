@@ -3,6 +3,7 @@
 
 export const CHURCH_TIME_ZONE = "Asia/Manila";
 const MANILA_OFFSET = "+08:00";
+const MANILA_OFFSET_MS = 8 * 60 * 60 * 1000;
 
 const INPUT_PATTERN = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?$/;
 
@@ -17,6 +18,21 @@ export function manilaInputToUtc(value: string): Date {
   const date = new Date(`${year}-${month}-${day}T${hour}:${minute}:00${MANILA_OFFSET}`);
   if (Number.isNaN(date.getTime())) throw new Error(`Invalid date/time input: "${value}"`);
   return date;
+}
+
+/** True if `value` is a well-formed Manila date/time input that manilaInputToUtc accepts. */
+export function isManilaInput(value: string): boolean {
+  try {
+    manilaInputToUtc(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** The inverse of manilaInputToUtc: a UTC Date as a datetime-local value in Manila time. */
+export function utcToManilaInput(date: Date): string {
+  return new Date(date.getTime() + MANILA_OFFSET_MS).toISOString().slice(0, 16);
 }
 
 /** The Manila calendar date of an instant. */

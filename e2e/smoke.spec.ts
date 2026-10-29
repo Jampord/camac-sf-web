@@ -6,8 +6,10 @@ test("home page loads", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Upcoming events" })).toBeVisible();
 });
 
-test("admin area redirects signed-out visitors to sign-in", async ({ page }) => {
-  await page.goto("/admin");
-  await expect(page).toHaveURL(/\/admin\/sign-in/);
-  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
-});
+for (const path of ["/admin", "/admin/events/new", "/admin/events/deleted", "/admin/events/x"]) {
+  test(`${path} redirects signed-out visitors to sign-in`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/admin\/sign-in/);
+    await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
+  });
+}

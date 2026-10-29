@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { formatManila, manilaDateParts, manilaInputToUtc } from "./time";
+import {
+  formatManila,
+  isManilaInput,
+  manilaDateParts,
+  manilaInputToUtc,
+  utcToManilaInput,
+} from "./time";
 
 describe("manilaInputToUtc", () => {
   it("treats datetime-local input as Manila time (UTC+8)", () => {
@@ -17,6 +23,24 @@ describe("manilaInputToUtc", () => {
   it("rejects malformed input", () => {
     expect(() => manilaInputToUtc("14/11/2026")).toThrow();
     expect(() => manilaInputToUtc("2026-13-40")).toThrow();
+  });
+});
+
+describe("utcToManilaInput", () => {
+  it("renders a UTC instant as a Manila datetime-local value", () => {
+    expect(utcToManilaInput(new Date("2026-12-31T22:30:00Z"))).toBe("2027-01-01T06:30");
+  });
+
+  it("round-trips with manilaInputToUtc", () => {
+    expect(utcToManilaInput(manilaInputToUtc("2027-04-10T19:45"))).toBe("2027-04-10T19:45");
+  });
+});
+
+describe("isManilaInput", () => {
+  it("accepts datetime-local values and rejects anything else", () => {
+    expect(isManilaInput("2027-04-10T09:00")).toBe(true);
+    expect(isManilaInput("")).toBe(false);
+    expect(isManilaInput("tomorrow")).toBe(false);
   });
 });
 
