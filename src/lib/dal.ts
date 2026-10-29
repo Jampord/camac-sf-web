@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { normalizeEmail } from "@/lib/emails";
@@ -17,6 +18,9 @@ export type Admin = {
  * Reads the request, so callers must render inside a <Suspense> boundary (Cache Components).
  */
 export async function getAdmin(): Promise<Admin | null> {
+  // auth() generates a random CSRF token when the request has none. Cache Components rejects
+  // random values during prerendering, so mark this as request-time work first.
+  await connection();
   const session = await auth();
   const email = session?.user?.email;
   if (!email) return null;
