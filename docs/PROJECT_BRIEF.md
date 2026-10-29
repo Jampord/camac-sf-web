@@ -13,6 +13,7 @@ A solo, portfolio-grade full-stack web app for **CAMAC - San Fernando** (~50+ we
 **Today:** a dedicated volunteer posts announcements to the Facebook page and Messenger GC, with posters made in Canva. Major events are announced ~2 months ahead, others ~1 month ahead. The CMT decides venue use.
 
 **What the interviews showed:**
+
 - No remembered missed/late announcements, no repeated questions in the GC, no venue double-bookings. Announcements mostly work today.
 - The announcements volunteer **would use** a single shareable link with a rich preview.
 - The clearest pain in the church overall is the treasurer's **counting and totaling of the collection** (Phase 2).
@@ -20,6 +21,7 @@ A solo, portfolio-grade full-stack web app for **CAMAC - San Fernando** (~50+ we
 **Why events is still the MVP (decided):** it is low-risk, needs no trust with financial data, has a committed first user (the announcements volunteer), and builds trust with leadership before Phase 2 tithes. Its value is **one always-current, shareable calendar** for events announced 1–2 months ahead, not fixing a broken process.
 
 **How the volunteer will post (don't change what works):**
+
 - **Facebook page:** keep the poster **photo post**, with the event link in the caption. (A photo post doesn't render a link preview; the caption link is what matters here.)
 - **Messenger GC:** paste the **copied announcement**, which includes the link and shows the rich preview. The share card matters most here.
 
@@ -35,14 +37,14 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 
 ## 4. Users & access
 
-| User | Logs in? | Can do |
-|---|---|---|
-| Member / visitor | **No** | View public calendar & event pages, share/copy announcements, add events to their calendar, submit prayer requests |
-| Admin (2–4 people — at least the announcements volunteer, plus e.g. pastor/secretary) | **Yes** — Google sign-in, email allowlist | Create/edit/publish/cancel/delete events, see open counts |
-| Admin with `canViewPrayer` (prayer team) | **Yes** | All admin actions + read/manage prayer requests |
+| User                                                                                  | Logs in?                                  | Can do                                                                                                             |
+| ------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Member / visitor                                                                      | **No**                                    | View public calendar & event pages, share/copy announcements, add events to their calendar, submit prayer requests |
+| Admin (2–4 people — at least the announcements volunteer, plus e.g. pastor/secretary) | **Yes** — Google sign-in, email allowlist | Create/edit/publish/cancel/delete events, see open counts                                                          |
+| Admin with `canViewPrayer` (prayer team)                                              | **Yes**                                   | All admin actions + read/manage prayer requests                                                                    |
 
 - Single role (`admin`) in the MVP. Ministry-head accounts are Phase 2.
-- Only emails already in the `User` table can sign in (the table *is* the allowlist).
+- Only emails already in the `User` table can sign in (the table _is_ the allowlist).
 - **Admins and `canViewPrayer` are set by seed script / DB only — no UI** for managing them. Prayer access is granted by the developer at the pastor's request, so no admin can grant it to themselves.
 - **Disclosure to leadership:** the developer has database access; commit to not reading prayer data.
 
@@ -73,6 +75,7 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 ## 6. MVP features
 
 ### 6.1 Events
+
 - Fields: title, description, start/end date-time, **all-day flag**, **venue (free text — church, homes, outreach locations, resorts)**, ministry tag, optional poster image, optional **contact person**, optional **attire** (e.g. for Culmination Sunday).
 - **Drafts:** events are unpublished until an admin publishes (`publishedAt`). Unpublished events don't appear publicly; their link returns 404.
 - **All-day & multi-day:** multi-day events (e.g. a Fri–Sun retreat) appear on every day they span, labeled "Day 1 of 3"; share card and announcement show a date range ("Nov 14–16").
@@ -81,13 +84,14 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 - **Recurrence:** none or **weekly** (with optional end date). No custom rules.
   - **Skip dates:** admins can cancel single occurrences (e.g. prayer meeting during Holy Week). Special services are created as separate one-off events. No per-occurrence overrides.
   - Seed recurring events: **Sunday service, prayer meeting, Bible study**.
-- **Ministries (seed data):** Youth, Women's, Men's, Music, Sunday School, Church Ministry Team (CMT).
+- **Ministries (seed data):** Youth, Women, Men, Music, Sunday School, Church Ministry Team (CMT).
 - **Cancel ≠ delete.**
   - **Cancel** (`cancelledAt`): the page stays live with a clear **"Cancelled"** banner and an optional note (e.g. "Moved to Nov 22"). For events that were already shared.
   - **Delete = soft delete**, for mistakes and duplicates. Restorable for 30 days, then purged by cron.
 - **Slugs:** generated **once at creation** as title + month/year (`youth-camp-2027-04`), numeric suffix on collision, **never changed on edit** so shared links don't break.
 
 ### 6.2 Public calendar & event pages
+
 - No login. Mobile-first, readable for older members (large text, high contrast, simple navigation).
 - **Agenda list** (no month grid in the MVP): grouped by month, large dates, one event per row, showing **at least 3 months ahead**. Ministry filter as large chips at the top.
 - Shows **from today forward**; a **"Past events"** list is one tap away (future home of the Phase 3 Facebook photos link).
@@ -95,7 +99,8 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 - **After an event ends:** the page stays, with a **"This event has ended"** banner and no add-to-calendar button.
 - **Recurring series:** page shows the pattern ("Every Sunday · 9:00 AM") and the next occurrence below it.
 
-### 6.3 Share cards *(the "new skill" piece)*
+### 6.3 Share cards _(the "new skill" piece)_
+
 - Every event URL renders a **rich link preview** (Open Graph image) when pasted into Messenger or Facebook.
 - **Always a generated 1200×630 card** (Canva posters are usually portrait and would be cropped):
   - With poster → poster on one side, title/date/time/venue on the other.
@@ -107,20 +112,24 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 - **"Share"** button: opens the phone's system share sheet (Web Share API) where supported; "Copy announcement" is always shown alongside it.
 
 ### 6.4 Open counter
+
 - **Opens** are logged by a small **client-side beacon** after the page loads (crawlers don't run JS). Known bot user-agents (e.g. Facebook/Messenger crawlers) are ignored as a backstop. **Signed-in admins are not counted.** No deduping.
 - **Copy** and **Share** clicks are logged as separate stat types.
 - **No cookies, no personal data.**
 - Admins see per-event counts (e.g. "Opened 34 times · Copied 6 · Shared 4") plus the metric panel (§3).
 
 ### 6.5 Add to calendar
+
 - "Add to Google Calendar" link + downloadable `.ics` file per event.
 - **Recurring events add the whole series** (weekly rule, skip dates excluded) in both the `.ics` and the Google link.
 
 ### 6.6 QR codes
+
 - **Print-ready page** per event and for the prayer request form: title, date, large QR, short URL underneath, sized for **half an A4** (bulletins, church door).
 - Plus a **plain PNG download** for projector slides.
 
 ### 6.7 Prayer requests
+
 - **Public form, no login.** Fields: request (required), name (optional — anonymous allowed), contact for follow-up (optional, "if you'd like someone to reach out"), "OK to share with the congregation" checkbox (**default off**; stored for a future public wall, not used in MVP).
 - **Privacy notice** (Data Privacy Act, RA 10173 — standard practice, not legal advice): a two-line notice above Submit (who sees it, auto-deleted after a year, how to ask for removal) plus a short **/privacy** page naming a church contact.
 - **Spam protection:** hidden honeypot field + a **loose per-IP rate limit (~10 submissions/hour)** — several people may submit from the same church Wi-Fi. Stores a salted hash of the IP, deleted within 24h. Blocked users see a kind message ("Please try again in a few minutes"). **No CAPTCHA.**
@@ -149,7 +158,7 @@ model User {
 
 model Ministry {
   id     String  @id @default(cuid())
-  name   String  @unique   // Youth, Women's, Men's, Music, Sunday School, CMT
+  name   String  @unique   // Youth, Women, Men, Music, Sunday School, CMT
   events Event[]
 }
 
@@ -219,6 +228,7 @@ model Setting {
 ```
 
 **Implementation notes**
+
 - Weekly events are stored as one row; occurrences are expanded at query time for the requested date range, minus `skipDates`. Share links point to the series.
 - All public queries filter out `deletedAt IS NOT NULL` and `publishedAt IS NULL`. Cancelled events stay visible with a banner. Admins get a "Recently deleted" view with restore.
 
@@ -226,15 +236,15 @@ model Setting {
 
 No deadline — work top to bottom. If time gets tight, the metric-critical items in step 3 come first.
 
-| Step | Deliverable |
-|---|---|
-| **1** | Project setup, Neon + Prisma, seed ministries & admins (emails from env vars), Auth.js Google sign-in with allowlist, admin event create/edit/publish/cancel/soft-delete, CI, first deploy to Vercel |
-| **2** | Public agenda list & event pages (mobile-first, 3+ months ahead, past events list, ended/cancelled banners), weekly recurrence + skip dates + seeded recurring events, all-day/multi-day, ministry filter with Church-wide, Cloudinary poster upload, contact person & attire |
-| **3** | **Metric-critical:** share cards (generated 1200×630, versioned URL), Copy announcement + Share button, open counter (beacon, bot/admin exclusion), admin metric panel |
-| **4** | Add to calendar (`.ics` + Google, series-aware) |
-| **5** | Printable QR pages + PNG download |
+| Step  | Deliverable                                                                                                                                                                                                                                                                                     |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** | Project setup, Neon + Prisma, seed ministries & admins (emails from env vars), Auth.js Google sign-in with allowlist, admin event create/edit/publish/cancel/soft-delete, CI, first deploy to Vercel                                                                                            |
+| **2** | Public agenda list & event pages (mobile-first, 3+ months ahead, past events list, ended/cancelled banners), weekly recurrence + skip dates + seeded recurring events, all-day/multi-day, ministry filter with Church-wide, Cloudinary poster upload, contact person & attire                   |
+| **3** | **Metric-critical:** share cards (generated 1200×630, versioned URL), Copy announcement + Share button, open counter (beacon, bot/admin exclusion), admin metric panel                                                                                                                          |
+| **4** | Add to calendar (`.ics` + Google, series-aware)                                                                                                                                                                                                                                                 |
+| **5** | Printable QR pages + PNG download                                                                                                                                                                                                                                                               |
 | **6** | **Pre-launch user test:** the announcements volunteer and two older members try it on their own phones — find next Sunday's event, open an event from a pasted link, add it to their calendar. Fix what trips them up. **Then admins start using it and the 4-week measurement window begins.** |
-| **7** | Prayer requests: form + privacy notice + /privacy page, honeypot + rate limit, prayer-team inbox, status workflow, email notifications, retention cron; soft-delete purge cron |
+| **7** | Prayer requests: form + privacy notice + /privacy page, honeypot + rate limit, prayer-team inbox, status workflow, email notifications, retention cron; soft-delete purge cron                                                                                                                  |
 
 ## 9. Engineering & portfolio
 
@@ -249,6 +259,7 @@ No deadline — work top to bottom. If time gets tight, the metric-critical item
 ### Phase 2 — Admin tools
 
 **Tithes & offerings** — what the treasurer/secretary told us:
+
 - Recorded today in a **logbook + Excel**; the Excel file is stored in a **Messenger chat** (a risk in itself).
 - Records are kept **per service as totals / envelope numbers**. **Per-person giving is strictly confidential.**
 - Giving is a **mix** of cash, GCash/Maya and bank transfer.
@@ -258,6 +269,7 @@ No deadline — work top to bottom. If time gets tight, the metric-critical item
 - Willing to do a **parallel run** alongside the logbook, with **data backups**.
 
 Candidate scope (to decide with the treasurer before Phase 2 starts):
+
 - Per-service count sheet: cash by bill/coin denomination + GCash/Maya/bank entries
 - Totals by category (tithes, offerings, special giving)
 - Envelope numbers stored **without names**
@@ -271,11 +283,13 @@ Candidate scope (to decide with the treasurer before Phase 2 starts):
 **Also:** "This week at church" digest page + share card. **Giving QR (display only) — only if Vercel support confirms in writing that it's allowed on Hobby (§5.1); otherwise dropped or deferred until hosting moves.**
 
 ### Phase 3 — Content & serving
+
 - **Sermon archive** — sermons are already recorded and posted on **YouTube**. A volunteer admin pastes the YouTube link and enters **title, speaker, Bible passage, series name**; the page embeds the video. (Automatic playlist import is a possible later upgrade.)
 - **Past events photos** — no separate gallery. A dedicated member already posts photos to the Facebook page, so past events get a **"Photos" link to the Facebook album** (`photosUrl` field), shown in the Past events list.
 - **Serving roster** — roles: Music, ushers, Sunday School teachers/assistants, prayer meeting in-charge, Sunday service schedule, post-service cleanup, setup/restoration, dishwashers. Today: a list exists; swaps happen by reaching out to whoever is available; reminders go out at Sunday service and on Messenger; **last-minute swaps** are the main issue. Introduces a **names-only `Person`** table.
 
 ### Phase 4 — People
+
 - **Birthday & anniversary greetings**
   - Source: a **notebook** of names and birthdays kept by the person who records attendance. **One-time import**, then occasional admin updates.
   - Birthdays: month & day; **birth year optional**.
@@ -285,6 +299,7 @@ Candidate scope (to decide with the treasurer before Phase 2 starts):
 - **Public prayer wall** (uses the `shareConsent` already collected), **push/SMS reminders**.
 
 ### Explicitly not planned (for now)
+
 Facebook auto-posting via Graph API, RSVP, booking request/approval flow, venue overlap checks, a separate photo gallery, a month-grid calendar, per-occurrence overrides for recurring events, Tagalog UI, attendance tracking, member directory.
 
 ## 11. Leadership sign-off

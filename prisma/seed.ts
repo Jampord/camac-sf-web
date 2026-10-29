@@ -10,14 +10,7 @@ import "dotenv/config";
 import { createPrismaClient } from "../src/lib/prisma";
 import { parseEmailList } from "../src/lib/emails";
 
-const MINISTRIES = [
-  "Youth",
-  "Women's",
-  "Men's",
-  "Music",
-  "Sunday School",
-  "Church Ministry Team (CMT)",
-];
+const MINISTRIES = ["Youth", "Women", "Men", "Music", "Sunday School", "Church Ministry Team (CMT)"];
 
 const prisma = createPrismaClient();
 
