@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { ChevronLeftIcon } from "lucide-react";
+import { ChevronLeftIcon, QrCodeIcon } from "lucide-react";
 import { DateBlock } from "@/components/date-block";
 import { InlinePending } from "@/components/link-pending";
 import { SiteHeader } from "@/components/site-header";
@@ -186,7 +186,15 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
           <ShareButton title={event.title} slug={event.slug} />
         </div>
 
-        {/* Build step 5: printable QR. */}
+        {/* For bulletins, the church door and slides (brief §6.6). */}
+        <Link
+          href={`/events/${event.slug}/qr`}
+          className="flex w-fit items-center gap-2 rounded-md py-2 font-medium underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <QrCodeIcon className="size-5" aria-hidden />
+          Print a QR code for this event
+          <InlinePending />
+        </Link>
       </main>
     </>
   );
