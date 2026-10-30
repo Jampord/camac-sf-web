@@ -18,6 +18,7 @@ import {
 } from "@/lib/events/recurrence";
 import { formatManila } from "@/lib/time";
 import { CopyAnnouncement } from "./copy-announcement";
+import { ShareButton } from "./share-button";
 
 // Public event page (brief §6.2). Drafts, deleted events and wrong links are a real 404:
 // the event is looked up before anything streams, so Next can still send the 404 status.
@@ -141,25 +142,28 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
           <p className="text-lg leading-relaxed whitespace-pre-line">{event.description}</p>
         )}
 
-        {/* Nothing to announce once it's cancelled; the banner above says so instead. */}
-        {!cancelled && (
-          <CopyAnnouncement
-            slug={event.slug}
-            event={{
-              title: event.title,
-              description: event.description,
-              startsAt: event.startsAt,
-              endsAt: event.endsAt,
-              allDay: event.allDay,
-              venue: event.venue,
-              attire: event.attire,
-              contactPerson: event.contactPerson,
-              recurrence: event.recurrence,
-            }}
-          />
-        )}
+        <div className="flex flex-col gap-3 sm:flex-row">
+          {/* Nothing to announce once it's cancelled, but sharing the page still tells people. */}
+          {!cancelled && (
+            <CopyAnnouncement
+              slug={event.slug}
+              event={{
+                title: event.title,
+                description: event.description,
+                startsAt: event.startsAt,
+                endsAt: event.endsAt,
+                allDay: event.allDay,
+                venue: event.venue,
+                attire: event.attire,
+                contactPerson: event.contactPerson,
+                recurrence: event.recurrence,
+              }}
+            />
+          )}
+          <ShareButton title={event.title} slug={event.slug} />
+        </div>
 
-        {/* Build steps 3-5: Share button, Add to calendar, printable QR. */}
+        {/* Build steps 4-5: Add to calendar, printable QR. */}
       </main>
     </>
   );
