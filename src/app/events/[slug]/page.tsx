@@ -19,6 +19,7 @@ import {
   type Series,
 } from "@/lib/events/recurrence";
 import { formatManila } from "@/lib/time";
+import { AddToCalendar } from "./add-to-calendar";
 import { CopyAnnouncement } from "./copy-announcement";
 import { OpenBeacon } from "./open-beacon";
 import { ShareButton } from "./share-button";
@@ -160,6 +161,10 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
           <p className="text-lg leading-relaxed whitespace-pre-line">{event.description}</p>
         )}
 
+        <Suspense>
+          <AddToCalendar event={event} slug={event.slug} />
+        </Suspense>
+
         <div className="flex flex-col gap-3 sm:flex-row">
           {/* Nothing to announce once it's cancelled, but sharing the page still tells people. */}
           {!cancelled && (
@@ -181,7 +186,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
           <ShareButton title={event.title} slug={event.slug} />
         </div>
 
-        {/* Build steps 4-5: Add to calendar, printable QR. */}
+        {/* Build step 5: printable QR. */}
       </main>
     </>
   );
