@@ -42,6 +42,12 @@ export function manilaDateParts(date: Date): { year: number; month: number; day:
   return { year: get("year"), month: get("month"), day: get("day") };
 }
 
+/** Day of the week in Manila: 0 = Sunday … 6 = Saturday. */
+export function manilaWeekday(date: Date): number {
+  const { year, month, day } = manilaDateParts(date);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
 /** Formats an instant in Manila time, e.g. formatManila(d, { weekday: "short" }). */
 export function formatManila(date: Date, options: Intl.DateTimeFormatOptions): string {
   return new Intl.DateTimeFormat("en-PH", { ...options, timeZone: CHURCH_TIME_ZONE }).format(date);

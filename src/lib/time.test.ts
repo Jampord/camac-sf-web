@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { formatManila, isManilaInput, manilaDateParts, manilaInputToUtc } from "./time";
+import {
+  formatManila,
+  isManilaInput,
+  manilaDateParts,
+  manilaInputToUtc,
+  manilaWeekday,
+} from "./time";
 
 describe("manilaInputToUtc", () => {
   it("treats datetime-local input as Manila time (UTC+8)", () => {
@@ -36,6 +42,14 @@ describe("manilaDateParts", () => {
       month: 12,
       day: 1,
     });
+  });
+});
+
+describe("manilaWeekday", () => {
+  it("returns the Manila day of the week, with Sunday as 0", () => {
+    // Sat 2026-11-21 16:30 UTC is Sun Nov 22, 00:30 in Manila.
+    expect(manilaWeekday(new Date("2026-11-21T16:30:00Z"))).toBe(0);
+    expect(manilaWeekday(new Date("2026-11-20T01:00:00Z"))).toBe(5);
   });
 });
 
