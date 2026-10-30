@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { db } from "@/lib/db";
 import {
@@ -130,9 +130,7 @@ function StartForm({
         {label}
         <Input type="date" name="start" required defaultValue={defaultValue} className="w-auto" />
       </label>
-      <Button type="submit" variant="outline">
-        {submitLabel}
-      </Button>
+      <SubmitButton variant="outline">{submitLabel}</SubmitButton>
     </form>
   );
 }

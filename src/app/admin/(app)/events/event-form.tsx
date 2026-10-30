@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
+import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -152,6 +153,7 @@ export function EventForm({ action, ministries, defaults = {}, submitLabel }: Pr
 
         <div className="flex flex-wrap items-center gap-4">
           <Button type="submit" size="lg" disabled={pending}>
+            {pending && <Spinner />}
             {pending ? "Saving…" : submitLabel}
           </Button>
           {state.errors && (

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { DateBlock } from "@/components/date-block";
+import { EventListSkeleton } from "@/components/skeletons";
 import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { PURGE_AFTER_DAYS, purgeDate } from "@/lib/events/status";
@@ -18,7 +19,7 @@ export default function DeletedEventsPage() {
           Deleted events stay here for {PURGE_AFTER_DAYS} days, then they&apos;re removed for good.
         </p>
       </div>
-      <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
+      <Suspense fallback={<EventListSkeleton rows={2} />}>
         <DeletedEvents />
       </Suspense>
     </>

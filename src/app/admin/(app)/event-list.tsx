@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DateBlock } from "@/components/date-block";
 import { EventStatusBadge } from "@/components/event-status-badge";
+import { RowPending } from "@/components/link-pending";
 import {
   eventDays,
   formatShortDateRange,
@@ -79,7 +80,7 @@ function EventRow({
     <li>
       <Link
         href={`/admin/events/${event.id}`}
-        className="-mx-2 flex gap-4 rounded-lg px-2 py-3 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="relative -mx-2 flex gap-4 rounded-lg px-2 py-3 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <DateBlock date={event.startsAt} today={today} />
         <div className="flex min-w-0 flex-col gap-1 pt-0.5">
@@ -102,6 +103,7 @@ function EventRow({
           {/* Drafts can't be opened by anyone yet. */}
           {status !== "draft" && <p className="text-sm font-medium">{formatStatCounts(stats)}</p>}
         </div>
+        <RowPending />
       </Link>
     </li>
   );

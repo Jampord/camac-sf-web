@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ChevronLeftIcon } from "lucide-react";
 import { DateBlock } from "@/components/date-block";
+import { InlinePending } from "@/components/link-pending";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { formatLongDates, formatTimes } from "@/lib/events/format";
@@ -81,6 +82,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
         >
           <ChevronLeftIcon className="size-5" aria-hidden />
           All events
+          <InlinePending />
         </Link>
 
         {cancelled && (

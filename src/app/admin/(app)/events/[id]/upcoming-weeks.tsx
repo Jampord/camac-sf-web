@@ -1,7 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { setWeekSkipped } from "../actions";
 
@@ -12,8 +13,10 @@ export type Week = { startsAt: string; label: string; skipped: boolean };
 // event's page, so members know.
 export function UpcomingWeeks({ id, weeks }: { id: string; weeks: Week[] }) {
   const [pending, startTransition] = useTransition();
+  const [toggling, setToggling] = useState<string | null>(null);
 
   function toggle(week: Week) {
+    setToggling(week.startsAt);
     startTransition(async () => {
       const { changed } = await setWeekSkipped(id, week.startsAt, !week.skipped);
       if (!changed) {
@@ -48,6 +51,7 @@ export function UpcomingWeeks({ id, weeks }: { id: string; weeks: Week[] }) {
               onClick={() => toggle(week)}
               aria-label={week.skipped ? `Bring back ${week.label}` : `Skip ${week.label}`}
             >
+              {pending && toggling === week.startsAt && <Spinner />}
               {week.skipped ? "Bring back" : "Skip"}
             </Button>
           </li>

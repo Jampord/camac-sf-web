@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { FormSkeleton } from "@/components/skeletons";
 import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { createEvent } from "../actions";
@@ -16,7 +17,7 @@ export default function NewEventPage() {
           It&apos;s saved as a draft. Nobody sees it until you publish.
         </p>
       </div>
-      <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
+      <Suspense fallback={<FormSkeleton />}>
         <NewEvent />
       </Suspense>
     </>

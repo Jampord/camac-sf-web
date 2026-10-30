@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { InlinePending } from "@/components/link-pending";
 import { SiteHeader } from "@/components/site-header";
 
 // Shared chrome for signed-in admin pages. The (app) route group keeps /admin/sign-in outside
@@ -10,15 +11,17 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
       <SiteHeader />
       <nav aria-label="Admin" className="border-b bg-muted">
         <div className="mx-auto flex w-full max-w-2xl gap-6 px-4 py-2 text-sm font-medium">
-          <Link href="/admin" className="py-1 hover:text-primary">
-            Events
-          </Link>
-          <Link href="/admin/events/new" className="py-1 hover:text-primary">
-            New event
-          </Link>
-          <Link href="/admin/events/deleted" className="py-1 hover:text-primary">
-            Recently deleted
-          </Link>
+          {/* Each link shows a small spinner if its page is slow to load. */}
+          {[
+            ["/admin", "Events"],
+            ["/admin/events/new", "New event"],
+            ["/admin/events/deleted", "Recently deleted"],
+          ].map(([href, label]) => (
+            <Link key={href} href={href} className="flex items-center gap-1.5 py-1 hover:text-primary">
+              {label}
+              <InlinePending />
+            </Link>
+          ))}
         </div>
       </nav>
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
