@@ -1,5 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { formatMonthHeading, formatTimeRange, isSameManilaDay } from "./format";
+import { formatMonthHeading, formatTimeRange, groupByMonth, isSameManilaDay } from "./format";
+
+describe("groupByMonth", () => {
+  it("groups by Manila month in the given order", () => {
+    const items = [
+      { id: "a", at: new Date("2026-11-20T01:00:00Z") },
+      { id: "b", at: new Date("2026-11-30T17:00:00Z") }, // Dec 1 in Manila
+      { id: "c", at: new Date("2026-12-05T01:00:00Z") },
+    ];
+    const grouped = groupByMonth(items, (item) => item.at).map(([month, group]) => [
+      month,
+      group.map((item) => item.id),
+    ]);
+    expect(grouped).toEqual([
+      ["November 2026", ["a"]],
+      ["December 2026", ["b", "c"]],
+    ]);
+  });
+});
 
 // 9:00 AM Manila = 01:00 UTC.
 const fri9am = new Date("2026-11-20T01:00:00Z");

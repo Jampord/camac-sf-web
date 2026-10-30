@@ -23,3 +23,13 @@ export function formatTimeRange(startsAt: Date, endsAt: Date): string {
 export function formatMonthHeading(date: Date): string {
   return formatManila(date, { month: "long", year: "numeric" });
 }
+
+/** Groups items under Manila month headings, keeping the order they were given in. */
+export function groupByMonth<T>(items: T[], dateOf: (item: T) => Date): [string, T[]][] {
+  const months = new Map<string, T[]>();
+  for (const item of items) {
+    const heading = formatMonthHeading(dateOf(item));
+    months.set(heading, [...(months.get(heading) ?? []), item]);
+  }
+  return [...months];
+}

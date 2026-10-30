@@ -1,10 +1,11 @@
 "use server";
 
-import { refresh } from "next/cache";
+import { refresh, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@/generated/prisma/client";
 import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { EVENTS_TAG } from "@/lib/events/public";
 import { parseEventForm, type EventFormState, type EventInput } from "@/lib/events/input";
 import { slugBase, uniqueSlug } from "@/lib/slug";
 
@@ -36,6 +37,7 @@ export async function updateEvent(
   // `data` has no slug field, so the slug can't change here: shared links keep working.
   // updateMany (not update) so a deleted or missing id is a no-op instead of an error.
   await db.event.updateMany({ where: { id, deletedAt: null }, data: result.data });
+  updateTag(EVENTS_TAG); // public pages show the change right away
   refresh(); // re-render the page with the saved values
   return { saved: true };
 }
@@ -52,6 +54,7 @@ export async function publishEvent(id: string): Promise<LifecycleResult> {
     where: { id, deletedAt: null, publishedAt: null },
     data: { publishedAt: new Date() },
   });
+  updateTag(EVENTS_TAG); // public pages show the change right away
   refresh();
   return { changed: count > 0 };
 }
@@ -64,6 +67,7 @@ export async function cancelEvent(id: string, note: string): Promise<LifecycleRe
     where: { id, deletedAt: null, publishedAt: { not: null }, cancelledAt: null },
     data: { cancelledAt: new Date(), cancelNote },
   });
+  updateTag(EVENTS_TAG); // public pages show the change right away
   refresh();
   return { changed: count > 0 };
 }
@@ -74,6 +78,7 @@ export async function uncancelEvent(id: string): Promise<LifecycleResult> {
     where: { id, deletedAt: null, cancelledAt: { not: null } },
     data: { cancelledAt: null, cancelNote: null },
   });
+  updateTag(EVENTS_TAG); // public pages show the change right away
   refresh();
   return { changed: count > 0 };
 }
@@ -88,6 +93,7 @@ export async function deleteEvent(id: string): Promise<LifecycleResult> {
     where: { id, deletedAt: null },
     data: { deletedAt: new Date() },
   });
+  updateTag(EVENTS_TAG);
   return { changed: count > 0 };
 }
 
@@ -97,6 +103,7 @@ export async function restoreEvent(id: string): Promise<LifecycleResult> {
     where: { id, deletedAt: { not: null } },
     data: { deletedAt: null },
   });
+  updateTag(EVENTS_TAG); // public pages show the change right away
   refresh();
   return { changed: count > 0 };
 }

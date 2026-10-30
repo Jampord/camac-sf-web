@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { DateBlock } from "@/components/date-block";
 import { EventStatusBadge } from "@/components/event-status-badge";
-import { formatMonthHeading, formatTimeRange, isSameManilaDay } from "@/lib/events/format";
+import { formatTimeRange, groupByMonth, isSameManilaDay } from "@/lib/events/format";
 import { eventStatus } from "@/lib/events/status";
+import { slugify } from "@/lib/slug";
 import { cn } from "@/lib/utils";
 
 export type ListedEvent = {
@@ -19,17 +20,12 @@ export type ListedEvent = {
 
 /** Events grouped under Manila month headings, in the order given. */
 export function EventList({ events, now }: { events: ListedEvent[]; now: Date }) {
-  const months = new Map<string, ListedEvent[]>();
-  for (const event of events) {
-    const heading = formatMonthHeading(event.startsAt);
-    months.set(heading, [...(months.get(heading) ?? []), event]);
-  }
-
   return (
     <div className="flex flex-col gap-8">
-      {[...months].map(([heading, monthEvents]) => (
-        <section key={heading} aria-labelledby={`month-${heading}`}>
-          <h2 id={`month-${heading}`} className="mb-2 text-lg font-bold">
+      {groupByMonth(events, (event) => event.startsAt).map(([heading, monthEvents]) => (
+        // ids can't contain spaces: aria-labelledby treats a space as a separator between ids.
+        <section key={heading} aria-labelledby={`admin-month-${slugify(heading)}`}>
+          <h2 id={`admin-month-${slugify(heading)}`} className="mb-2 text-lg font-bold">
             {heading}
           </h2>
           <ul className="flex flex-col divide-y border-y">

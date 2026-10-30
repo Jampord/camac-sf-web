@@ -5,17 +5,20 @@ import { manilaDateParts } from "./time";
 
 const MAX_TITLE_LENGTH = 60;
 
-export function slugBase(title: string, startsAt: Date): string {
-  const titlePart =
-    title
-      .normalize("NFKD")
-      .replace(/[̀-ͯ]/g, "") // strip accents: "Niño" -> "Nino"
-      .toLowerCase()
-      .replace(/['’]/g, "") // "Women's" -> "womens"
-      .replace(/[^a-z0-9]+/g, "-")
-      .slice(0, MAX_TITLE_LENGTH)
-      .replace(/^-+|-+$/g, "") || "event";
+/** URL-safe text: "Sunday School" -> "sunday-school", "Sto. Niño" -> "sto-nino". May be "". */
+export function slugify(text: string, maxLength = MAX_TITLE_LENGTH): string {
+  return text
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "") // strip accents: "Niño" -> "Nino"
+    .toLowerCase()
+    .replace(/['’]/g, "") // "Women's" -> "womens"
+    .replace(/[^a-z0-9]+/g, "-")
+    .slice(0, maxLength)
+    .replace(/^-+|-+$/g, "");
+}
 
+export function slugBase(title: string, startsAt: Date): string {
+  const titlePart = slugify(title) || "event";
   const { year, month } = manilaDateParts(startsAt);
   return `${titlePart}-${year}-${String(month).padStart(2, "0")}`;
 }

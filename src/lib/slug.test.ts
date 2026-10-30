@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { slugBase, uniqueSlug } from "./slug";
+import { slugBase, slugify, uniqueSlug } from "./slug";
+
+describe("slugify", () => {
+  it("makes ministry names URL-safe", () => {
+    expect(slugify("Sunday School")).toBe("sunday-school");
+    expect(slugify("Church Ministry Team (CMT)")).toBe("church-ministry-team-cmt");
+    expect(slugify("Women's")).toBe("womens");
+  });
+});
 
 const april2027 = new Date("2027-04-10T01:00:00Z");
 
