@@ -9,6 +9,7 @@ import {
   isSameManilaDay,
 } from "@/lib/events/format";
 import { describeRepeat } from "@/lib/events/recurrence";
+import { formatStatCounts, type StatTotals } from "@/lib/events/stats";
 import { eventStatus } from "@/lib/events/status";
 import { slugify } from "@/lib/slug";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,15 @@ export type ListedEvent = {
 };
 
 /** Events grouped under Manila month headings, in the order given. */
-export function EventList({ events, now }: { events: ListedEvent[]; now: Date }) {
+export function EventList({
+  events,
+  now,
+  stats,
+}: {
+  events: ListedEvent[];
+  now: Date;
+  stats: Map<string, StatTotals>;
+}) {
   return (
     <div className="flex flex-col gap-8">
       {groupByMonth(events, (event) => event.startsAt).map(([heading, monthEvents]) => (
@@ -39,7 +48,12 @@ export function EventList({ events, now }: { events: ListedEvent[]; now: Date })
           </h2>
           <ul className="flex flex-col divide-y border-y">
             {monthEvents.map((event) => (
-              <EventRow key={event.id} event={event} today={isSameManilaDay(event.startsAt, now)} />
+              <EventRow
+                key={event.id}
+                event={event}
+                today={isSameManilaDay(event.startsAt, now)}
+                stats={stats.get(event.id)}
+              />
             ))}
           </ul>
         </section>
@@ -48,7 +62,15 @@ export function EventList({ events, now }: { events: ListedEvent[]; now: Date })
   );
 }
 
-function EventRow({ event, today }: { event: ListedEvent; today: boolean }) {
+function EventRow({
+  event,
+  today,
+  stats = { VIEW: 0, COPY: 0, SHARE: 0 },
+}: {
+  event: ListedEvent;
+  today: boolean;
+  stats?: StatTotals;
+}) {
   const status = eventStatus(event);
   const cancelled = status === "cancelled";
 
@@ -77,6 +99,8 @@ function EventRow({ event, today }: { event: ListedEvent; today: boolean }) {
           <p className="text-sm">{formatTimes(event.startsAt, event.endsAt, event.allDay)}</p>
           <p className="text-sm text-muted-foreground">{event.venue}</p>
           <p className="text-sm text-muted-foreground">{event.ministry?.name ?? "Church-wide"}</p>
+          {/* Drafts can't be opened by anyone yet. */}
+          {status !== "draft" && <p className="text-sm font-medium">{formatStatCounts(stats)}</p>}
         </div>
       </Link>
     </li>

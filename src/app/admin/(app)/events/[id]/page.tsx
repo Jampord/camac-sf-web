@@ -7,6 +7,7 @@ import { DateBlock } from "@/components/date-block";
 import { EventStatusBadge } from "@/components/event-status-badge";
 import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { formatStatCounts, totalsByEvent } from "@/lib/events/stats";
 import { eventStatus } from "@/lib/events/status";
 import { occurrences } from "@/lib/events/recurrence";
 import { formatManila, utcToManilaInput } from "@/lib/time";
@@ -32,9 +33,10 @@ export default function EditEventPage({ params }: PageProps<"/admin/events/[id]"
 async function EditEvent({ id }: { id: string }) {
   // Check access before touching the database.
   await requireAdmin();
-  const [event, ministries] = await Promise.all([
+  const [event, ministries, statRows] = await Promise.all([
     db.event.findFirst({ where: { id, deletedAt: null } }),
     db.ministry.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    db.eventStat.groupBy({ by: ["eventId", "type"], where: { eventId: id }, _count: true }),
   ]);
   if (!event) notFound();
   const status = eventStatus(event);
@@ -83,6 +85,11 @@ async function EditEvent({ id }: { id: string }) {
             <br />
             The link stays the same when you edit, so shared posts keep working.
           </p>
+          {status !== "draft" && (
+            <p className="text-sm font-medium">
+              {formatStatCounts(totalsByEvent(statRows).get(event.id) ?? { VIEW: 0, COPY: 0, SHARE: 0 })}
+            </p>
+          )}
           {status !== "draft" && (
             // Facebook and Messenger cache a link's preview; a new share card URL alone isn't
             // picked up until Facebook re-reads the page (brief §6.3).

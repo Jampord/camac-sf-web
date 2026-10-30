@@ -6,7 +6,9 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { nextOccurrence } from "@/lib/events/recurrence";
+import { totalsByEvent } from "@/lib/events/stats";
 import { EventList } from "./event-list";
+import { MetricPanel } from "./metric-panel";
 
 export const metadata: Metadata = { title: "Admin" };
 
@@ -29,6 +31,7 @@ export default function AdminPage() {
 async function AdminHome() {
   // Check access before touching the database.
   const admin = await requireAdmin();
+  const statRows = db.eventStat.groupBy({ by: ["eventId", "type"], _count: true });
   const events = await db.event.findMany({
     where: { deletedAt: null },
     orderBy: { startsAt: "asc" },
@@ -60,11 +63,14 @@ async function AdminHome() {
     .filter((event) => event.upcoming)
     .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
   const past = listed.filter((event) => !event.upcoming).reverse();
+  const stats = totalsByEvent(await statRows); // all-time counts per event
 
   return (
     <>
+      <MetricPanel now={now} />
+
       {upcoming.length > 0 ? (
-        <EventList events={upcoming} now={now} />
+        <EventList events={upcoming} now={now} stats={stats} />
       ) : (
         <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed p-6">
           <p className="font-semibold">No upcoming events</p>
@@ -81,7 +87,7 @@ async function AdminHome() {
         <details className="group">
           <summary className="cursor-pointer font-semibold">Past events ({past.length})</summary>
           <div className="mt-4">
-            <EventList events={past} now={now} />
+            <EventList events={past} now={now} stats={stats} />
           </div>
         </details>
       )}

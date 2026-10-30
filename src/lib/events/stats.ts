@@ -13,6 +13,30 @@ export function isBot(userAgent: string): boolean {
   return userAgent.trim() === "" || BOT_PATTERN.test(userAgent);
 }
 
+export type StatTotals = Record<StatType, number>;
+
+/** "Opened 34 times · Copied 6 · Shared 4" for admins (brief §6.4). */
+export function formatStatCounts({ VIEW, COPY, SHARE }: StatTotals): string {
+  const opened =
+    VIEW === 0 ? "Not opened yet" : VIEW === 1 ? "Opened once" : `Opened ${VIEW} times`;
+  return [opened, COPY > 0 && `Copied ${COPY}`, SHARE > 0 && `Shared ${SHARE}`]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/** Totals per event from db.eventStat.groupBy({ by: ["eventId", "type"], _count: true }). */
+export function totalsByEvent(
+  rows: { eventId: string; type: StatType; _count: number }[],
+): Map<string, StatTotals> {
+  const totals = new Map<string, StatTotals>();
+  for (const { eventId, type, _count } of rows) {
+    const t = totals.get(eventId) ?? { VIEW: 0, COPY: 0, SHARE: 0 };
+    t[type] += _count;
+    totals.set(eventId, t);
+  }
+  return totals;
+}
+
 /** The stat type from a beacon's JSON body, or null if it isn't one we record. */
 export function parseStatType(body: unknown): StatType | null {
   const type = (body as { type?: unknown } | null)?.type;

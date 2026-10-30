@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { isBot, parseStatType } from "./stats";
+import { formatStatCounts, isBot, parseStatType } from "./stats";
+
+describe("formatStatCounts", () => {
+  it("reads like the brief", () => {
+    expect(formatStatCounts({ VIEW: 34, COPY: 6, SHARE: 4 })).toBe(
+      "Opened 34 times · Copied 6 · Shared 4",
+    );
+  });
+
+  it("says once, and leaves out zero copies and shares", () => {
+    expect(formatStatCounts({ VIEW: 1, COPY: 0, SHARE: 0 })).toBe("Opened once");
+    expect(formatStatCounts({ VIEW: 0, COPY: 0, SHARE: 2 })).toBe("Not opened yet · Shared 2");
+  });
+});
 
 describe("isBot", () => {
   it.each([
