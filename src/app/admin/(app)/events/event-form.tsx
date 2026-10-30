@@ -89,6 +89,24 @@ export function EventForm({ action, ministries, defaults = {}, submitLabel }: Pr
           </FieldLabel>
         </Field>
 
+        <Field data-invalid={invalid("venueAddress")}>
+          <FieldLabel htmlFor="venueAddress">Address (optional)</FieldLabel>
+          <Input
+            id="venueAddress"
+            name="venueAddress"
+            maxLength={300}
+            placeholder="Street, barangay, town"
+            defaultValue={value("venueAddress")}
+            aria-invalid={invalid("venueAddress")}
+            aria-describedby="venueAddress-help"
+          />
+          <FieldDescription id="venueAddress-help">
+            Shown with a Google Maps link. Leave it blank for events at the church: the church
+            address is used.
+          </FieldDescription>
+          <FieldError>{error("venueAddress")}</FieldError>
+        </Field>
+
         <Field data-invalid={invalid("ministryId")}>
           <FieldLabel htmlFor="ministryId">Ministry</FieldLabel>
           <NativeSelect

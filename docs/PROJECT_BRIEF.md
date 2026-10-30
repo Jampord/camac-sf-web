@@ -80,6 +80,7 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 - **Drafts:** events are unpublished until an admin publishes (`publishedAt`). Unpublished events don't appear publicly; their link returns 404.
 - **All-day & multi-day:** multi-day events (e.g. a Fri–Sun retreat) appear on every day they span, labeled "Day 1 of 3"; share card and announcement show a date range ("Nov 14–16").
 - **"At the church venue"** checkbox, shown as a badge on the calendar. **No overlap warning** (no clashes have happened; the CMT decides venue use).
+- **Addresses:** admins set the **church address** once on the admin home (a `Setting`, never in the public repo); events at the church use it. Other venues get an optional **address** field. Wherever there's an address, the event page shows it with an "Open in Google Maps" link, and calendar files, the copied announcement and the QR sheet include it.
 - **Ministry:** optional. **No ministry = "Church-wide"**, labeled as such and shown under every ministry filter.
 - **Recurrence:** none or **weekly** (with optional end date). No custom rules.
   - **Skip dates:** admins can cancel single occurrences (e.g. prayer meeting during Holy Week). Special services are created as separate one-off events. No per-occurrence overrides.

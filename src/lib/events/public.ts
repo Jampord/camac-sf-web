@@ -1,6 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
+import { CHURCH_ADDRESS_KEY } from "./address";
 
 // Data for the public pages. Cached so a visit doesn't query the database; admin actions call
 // updateTag(EVENTS_TAG) after any change visitors can see, which refreshes it immediately.
@@ -66,10 +67,21 @@ export async function getPublishedEventBySlug(slug: string) {
       posterUrl: true,
       cancelledAt: true,
       cancelNote: true,
+      venueAddress: true,
       updatedAt: true, // versions the share card URL
       ministry: { select: { name: true } },
     },
   });
+}
+
+/** The church street address admins entered, or null until they do. Saving it updates the tag. */
+export async function getChurchAddress(): Promise<string | null> {
+  "use cache";
+  cacheTag(EVENTS_TAG);
+  cacheLife("days");
+
+  const setting = await db.setting.findUnique({ where: { key: CHURCH_ADDRESS_KEY } });
+  return setting?.value || null;
 }
 
 /** Ministries change only through the seed script, so they can be cached for days. */
