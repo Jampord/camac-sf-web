@@ -23,6 +23,20 @@ test("ministry chips filter the agenda through the URL", async ({ page }) => {
   );
 });
 
+// Drafts, deleted events and wrong links show the not-found page and are kept out of search
+// results and link previews. The status code is 404 once cached; the very first visit to a URL
+// streams with 200 plus noindex (Next's documented "soft 404" with Partial Prefetching), so the
+// test checks what visitors and crawlers get rather than the status.
+for (const slug of ["no-such-event-2099-01", "__placeholder__"]) {
+  test(`/events/${slug} shows the not-found page and isn't indexed`, async ({ page }) => {
+    const response = await page.goto(`/events/${slug}`);
+    expect([200, 404]).toContain(response?.status());
+    await expect(page.getByRole("heading", { name: "This page isn't available" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "See upcoming events" })).toBeVisible();
+    await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(1);
+  });
+}
+
 // Every admin page must send signed-out visitors to sign-in, including the edit page for an
 // id that doesn't exist (access is checked before the database is).
 for (const path of [
