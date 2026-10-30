@@ -16,6 +16,9 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
           <Link href="/admin/events/new" className="py-1 hover:text-primary">
             New event
           </Link>
+          <Link href="/admin/events/deleted" className="py-1 hover:text-primary">
+            Recently deleted
+          </Link>
         </div>
       </nav>
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">

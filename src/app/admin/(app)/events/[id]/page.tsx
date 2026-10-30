@@ -9,6 +9,7 @@ import { eventStatus } from "@/lib/events/status";
 import { utcToManilaInput } from "@/lib/time";
 import { updateEvent } from "../actions";
 import { EventForm } from "../event-form";
+import { EventActions } from "./event-actions";
 
 export const metadata: Metadata = { title: "Edit event" };
 
@@ -32,6 +33,7 @@ async function EditEvent({ id }: { id: string }) {
     db.ministry.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
   if (!event) notFound();
+  const status = eventStatus(event);
 
   return (
     <>
@@ -42,7 +44,7 @@ async function EditEvent({ id }: { id: string }) {
             <h1 className="font-heading text-3xl leading-tight font-bold tracking-tight">
               {event.title}
             </h1>
-            <EventStatusBadge status={eventStatus(event)} />
+            <EventStatusBadge status={status} />
           </div>
           <p className="text-sm text-muted-foreground">
             Link: <code className="break-all text-foreground">/events/{event.slug}</code>
@@ -52,7 +54,16 @@ async function EditEvent({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Milestone 5: publish, cancel and delete go here. */}
+      {status === "cancelled" && (
+        <div role="note" className="rounded-lg border border-destructive/40 bg-destructive/10 p-4">
+          <p className="font-semibold text-destructive">This event is cancelled.</p>
+          <p className="text-sm">
+            {event.cancelNote ?? "Its page shows a Cancelled notice."}
+          </p>
+        </div>
+      )}
+
+      <EventActions id={event.id} status={status} />
 
       <EventForm
         action={updateEvent.bind(null, event.id)}

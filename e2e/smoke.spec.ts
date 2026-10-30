@@ -8,7 +8,12 @@ test("home page loads", async ({ page }) => {
 
 // Every admin page must send signed-out visitors to sign-in, including the edit page for an
 // id that doesn't exist (access is checked before the database is).
-for (const path of ["/admin", "/admin/events/new", "/admin/events/some-id"]) {
+for (const path of [
+  "/admin",
+  "/admin/events/new",
+  "/admin/events/deleted",
+  "/admin/events/some-id",
+]) {
   test(`${path} redirects signed-out visitors to sign-in`, async ({ page }) => {
     await page.goto(path);
     await expect(page).toHaveURL(/\/admin\/sign-in/);

@@ -15,3 +15,10 @@ export function eventStatus(event: Lifecycle): EventStatus {
   if (event.cancelledAt) return "cancelled";
   return "published";
 }
+
+/** Soft-deleted events can be restored for this long; then the purge job removes them. */
+export const PURGE_AFTER_DAYS = 30;
+
+export function purgeDate(deletedAt: Date): Date {
+  return new Date(deletedAt.getTime() + PURGE_AFTER_DAYS * 24 * 60 * 60 * 1000);
+}

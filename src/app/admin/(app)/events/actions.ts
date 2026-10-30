@@ -40,6 +40,67 @@ export async function updateEvent(
   return { saved: true };
 }
 
+// Lifecycle actions (brief §6.1). Each `where` only matches an event in the right state, so
+// a stale button (e.g. the event was changed in another tab) does nothing. They report
+// whether anything changed so the UI can say so instead of showing a false "Published".
+
+type LifecycleResult = { changed: boolean };
+
+export async function publishEvent(id: string): Promise<LifecycleResult> {
+  await requireAdmin();
+  const { count } = await db.event.updateMany({
+    where: { id, deletedAt: null, publishedAt: null },
+    data: { publishedAt: new Date() },
+  });
+  refresh();
+  return { changed: count > 0 };
+}
+
+/** Cancel ≠ delete: the page stays up with a "Cancelled" banner and the optional note. */
+export async function cancelEvent(id: string, note: string): Promise<LifecycleResult> {
+  await requireAdmin();
+  const cancelNote = note.trim().slice(0, 200) || null;
+  const { count } = await db.event.updateMany({
+    where: { id, deletedAt: null, publishedAt: { not: null }, cancelledAt: null },
+    data: { cancelledAt: new Date(), cancelNote },
+  });
+  refresh();
+  return { changed: count > 0 };
+}
+
+export async function uncancelEvent(id: string): Promise<LifecycleResult> {
+  await requireAdmin();
+  const { count } = await db.event.updateMany({
+    where: { id, deletedAt: null, cancelledAt: { not: null } },
+    data: { cancelledAt: null, cancelNote: null },
+  });
+  refresh();
+  return { changed: count > 0 };
+}
+
+/**
+ * Soft delete: sets deletedAt only, restorable for PURGE_AFTER_DAYS. No refresh() here: the
+ * client navigates away, and refreshing the edit page first would flash a 404.
+ */
+export async function deleteEvent(id: string): Promise<LifecycleResult> {
+  await requireAdmin();
+  const { count } = await db.event.updateMany({
+    where: { id, deletedAt: null },
+    data: { deletedAt: new Date() },
+  });
+  return { changed: count > 0 };
+}
+
+export async function restoreEvent(id: string): Promise<LifecycleResult> {
+  await requireAdmin();
+  const { count } = await db.event.updateMany({
+    where: { id, deletedAt: { not: null } },
+    data: { deletedAt: null },
+  });
+  refresh();
+  return { changed: count > 0 };
+}
+
 type Validated = { ok: true; data: EventInput } | { ok: false; state: EventFormState };
 
 /** Form rules from parseEventForm, plus the one check that needs the database. */
