@@ -8,6 +8,7 @@ import {
   groupByMonth,
   isSameManilaDay,
 } from "@/lib/events/format";
+import { describeRepeat } from "@/lib/events/recurrence";
 import { eventStatus } from "@/lib/events/status";
 import { slugify } from "@/lib/slug";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ export type ListedEvent = {
   startsAt: Date;
   endsAt: Date;
   allDay: boolean;
+  recurrence: "NONE" | "WEEKLY";
   venue: string;
   publishedAt: Date | null;
   cancelledAt: Date | null;
@@ -65,6 +67,9 @@ function EventRow({ event, today }: { event: ListedEvent; today: boolean }) {
             </h3>
             <EventStatusBadge status={status} />
           </div>
+          {event.recurrence === "WEEKLY" && (
+            <p className="text-sm font-medium">{describeRepeat(event)}</p>
+          )}
           {/* Admins see each event once; multi-day ones show their date range. */}
           {eventDays(event.startsAt, event.endsAt).length > 1 && (
             <p className="text-sm font-medium">{formatShortDateRange(event.startsAt, event.endsAt)}</p>

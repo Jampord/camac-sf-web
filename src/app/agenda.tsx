@@ -11,6 +11,7 @@ import {
   type EventDay,
 } from "@/lib/events/format";
 import { getMinistries, getPublishedEvents, type PublicEvent } from "@/lib/events/public";
+import { describeRepeat, occurrences } from "@/lib/events/recurrence";
 import { slugify } from "@/lib/slug";
 import { manilaMidnight } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -19,8 +20,14 @@ import { cn } from "@/lib/utils";
 // Church-wide events (no ministry) show under every filter. Multi-day events appear on every
 // day they span, labeled "Day 1 of 3" (brief §6.1).
 
-/** One row of the agenda: an event on one of its days. */
-type AgendaEntry = { event: PublicEvent; day: EventDay };
+/** One row of the agenda: one day of one occurrence of an event. */
+type AgendaEntry = { event: PublicEvent; startsAt: Date; endsAt: Date; day: EventDay };
+
+// Weekly events are listed this far ahead (brief §6.2: at least 3 months). One-off events
+// show however far ahead they are.
+const WEEKLY_WEEKS_AHEAD = 13;
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const NO_LIMIT = new Date(8.64e15);
 
 export async function Agenda({ ministry }: { ministry?: string }) {
   // The event list comes from the cache; "upcoming" is decided per request, against now.
@@ -30,17 +37,22 @@ export async function Agenda({ ministry }: { ministry?: string }) {
 
   const selected = ministries.find((m) => slugify(m.name) === ministry);
   const today = manilaMidnight(now);
+  const weeklyHorizon = new Date(today.getTime() + WEEKLY_WEEKS_AHEAD * WEEK_MS);
   const entries: AgendaEntry[] = events
     .filter(
-      (event) =>
-        event.endsAt >= now &&
-        (!selected || event.ministryId === null || event.ministryId === selected.id),
+      (event) => !selected || event.ministryId === null || event.ministryId === selected.id,
+    )
+    // Weekly events become one entry per week (skipped weeks left out); one-off events stay one.
+    .flatMap((event) =>
+      occurrences(event, now, event.recurrence === "WEEKLY" ? weeklyHorizon : NO_LIMIT).map(
+        (occurrence) => ({ event, ...occurrence }),
+      ),
     )
     // A retreat that already started shows from today's day onwards.
-    .flatMap((event) =>
-      eventDays(event.startsAt, event.endsAt)
+    .flatMap(({ event, startsAt, endsAt }) =>
+      eventDays(startsAt, endsAt)
         .filter((day) => day.date >= today)
-        .map((day) => ({ event, day })),
+        .map((day) => ({ event, startsAt, endsAt, day })),
     )
     .sort((a, b) => entryTime(a) - entryTime(b));
 
@@ -57,8 +69,8 @@ export async function Agenda({ ministry }: { ministry?: string }) {
 }
 
 /** Order within a day: ongoing multi-day events (from midnight) first, then by start time. */
-function entryTime({ event, day }: AgendaEntry): number {
-  return day.index === 1 ? event.startsAt.getTime() : day.date.getTime();
+function entryTime({ startsAt, day }: AgendaEntry): number {
+  return day.index === 1 ? startsAt.getTime() : day.date.getTime();
 }
 
 function MinistryFilter({
@@ -118,12 +130,11 @@ function AgendaList({ entries, now }: { entries: AgendaEntry[]; now: Date }) {
             {month}
           </h2>
           <ul className="flex flex-col divide-y border-y">
-            {monthEntries.map(({ event, day }) => (
+            {monthEntries.map((entry) => (
               <AgendaRow
-                key={`${event.id}-${day.index}`}
-                event={event}
-                day={day}
-                today={isSameManilaDay(day.date, now)}
+                key={`${entry.event.id}-${entry.startsAt.getTime()}-${entry.day.index}`}
+                entry={entry}
+                today={isSameManilaDay(entry.day.date, now)}
               />
             ))}
           </ul>
@@ -133,7 +144,8 @@ function AgendaList({ entries, now }: { entries: AgendaEntry[]; now: Date }) {
   );
 }
 
-function AgendaRow({ event, day, today }: { event: PublicEvent; day: EventDay; today: boolean }) {
+function AgendaRow({ entry, today }: { entry: AgendaEntry; today: boolean }) {
+  const { event, startsAt, endsAt, day } = entry;
   const cancelled = event.cancelledAt !== null;
 
   // The whole row is the link: a big tap target, and the title is its accessible name.
@@ -156,13 +168,16 @@ function AgendaRow({ event, day, today }: { event: PublicEvent; day: EventDay; t
             </h3>
             {cancelled && <Badge variant="destructive">Cancelled</Badge>}
           </div>
+          {event.recurrence === "WEEKLY" && (
+            <p className="text-muted-foreground">{describeRepeat(event)}</p>
+          )}
           {day.total > 1 && (
             <p className="font-semibold text-primary">
               Day {day.index} of {day.total}
             </p>
           )}
           {cancelled && event.cancelNote && <p className="font-medium">{event.cancelNote}</p>}
-          <p>{formatDayTimes(event, day)}</p>
+          <p>{formatDayTimes({ startsAt, endsAt, allDay: event.allDay }, day)}</p>
           <p className="flex flex-wrap items-center gap-2 text-muted-foreground">
             {event.venue}
             {event.atChurchVenue && (

@@ -5,6 +5,7 @@ import { signOut } from "@/auth";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { nextOccurrence } from "@/lib/events/recurrence";
 import { EventList } from "./event-list";
 
 export const metadata: Metadata = { title: "Admin" };
@@ -37,6 +38,9 @@ async function AdminHome() {
       startsAt: true,
       endsAt: true,
       allDay: true,
+      recurrence: true,
+      recurrenceUntil: true,
+      skipDates: true,
       venue: true,
       publishedAt: true,
       cancelledAt: true,
@@ -45,11 +49,17 @@ async function AdminHome() {
     },
   });
 
-  // An event counts as upcoming until it has ended, so a multi-day retreat stays listed
-  // while it's happening.
+  // Upcoming = has a date that hasn't ended: a multi-day retreat stays listed while it's on,
+  // and a weekly series is listed once, under its next week.
   const now = new Date();
-  const upcoming = events.filter((event) => event.endsAt >= now);
-  const past = events.filter((event) => event.endsAt < now).reverse();
+  const listed = events.map((event) => {
+    const next = nextOccurrence(event, now);
+    return { ...event, ...(next && { startsAt: next.startsAt, endsAt: next.endsAt }), upcoming: !!next };
+  });
+  const upcoming = listed
+    .filter((event) => event.upcoming)
+    .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+  const past = listed.filter((event) => !event.upcoming).reverse();
 
   return (
     <>

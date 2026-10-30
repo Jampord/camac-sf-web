@@ -9,6 +9,13 @@ import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { formatLongDates, formatTimes } from "@/lib/events/format";
 import { getPublishedEventBySlug } from "@/lib/events/public";
+import {
+  describeRepeat,
+  nextOccurrence,
+  occurrences,
+  type Series,
+} from "@/lib/events/recurrence";
+import { formatManila } from "@/lib/time";
 
 // Public event page (brief §6.2). Drafts, deleted events and wrong links are a real 404:
 // the event is looked up before anything streams, so Next can still send the 404 status.
@@ -31,7 +38,11 @@ export async function generateMetadata({ params }: PageProps<"/events/[slug]">):
   if (!event) return {};
   return {
     title: event.cancelledAt ? `Cancelled: ${event.title}` : event.title,
-    description: `${formatLongDates(event.startsAt, event.endsAt)}. ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`,
+    // Weekly events never name a specific date: link previews are cached (brief §6.3).
+    description:
+      event.recurrence === "WEEKLY"
+        ? `${describeRepeat(event)}, ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`
+        : `${formatLongDates(event.startsAt, event.endsAt)}. ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`,
   };
 }
 
@@ -39,6 +50,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
   const event = await findEvent((await params).slug);
   if (!event) notFound();
   const cancelled = event.cancelledAt !== null;
+  const weekly = event.recurrence === "WEEKLY";
 
   return (
     <>
@@ -60,11 +72,12 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
         )}
         {/* Depends on the current time, so it renders per request; the rest stays cached. */}
         <Suspense>
-          <EndedNotice endsAt={event.endsAt} />
+          <EndedNotice series={event} />
         </Suspense>
 
         <div className="flex gap-4">
-          <DateBlock date={event.startsAt} />
+          {/* A weekly event has no single date; its next date is under "When". */}
+          {!weekly && <DateBlock date={event.startsAt} />}
           <h1
             className={`font-heading pt-1 text-3xl leading-tight font-bold tracking-tight sm:text-4xl ${cancelled ? "text-muted-foreground line-through" : ""}`}
           >
@@ -74,8 +87,23 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
 
         <dl className="grid gap-4 border-y py-5 text-lg sm:grid-cols-[8rem_1fr] sm:gap-x-6">
           <Detail label="When">
-            <span className="block">{formatLongDates(event.startsAt, event.endsAt)}</span>
-            <span className="block">{formatTimes(event.startsAt, event.endsAt, event.allDay)}</span>
+            {weekly ? (
+              <>
+                <span className="block font-semibold">{describeRepeat(event)}</span>
+                <span className="block">{formatTimes(event.startsAt, event.endsAt, event.allDay)}</span>
+                {event.recurrenceUntil && (
+                  <span className="block text-muted-foreground">Until {longDate(event.recurrenceUntil)}</span>
+                )}
+                <Suspense>
+                  <UpcomingWeeks series={event} />
+                </Suspense>
+              </>
+            ) : (
+              <>
+                <span className="block">{formatLongDates(event.startsAt, event.endsAt)}</span>
+                <span className="block">{formatTimes(event.startsAt, event.endsAt, event.allDay)}</span>
+              </>
+            )}
           </Detail>
           <Detail label="Where">
             <span className="flex flex-wrap items-center gap-2">
@@ -110,9 +138,33 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
   );
 }
 
-async function EndedNotice({ endsAt }: { endsAt: Date }) {
+const longDate = (date: Date) =>
+  formatManila(date, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+
+/** Next date, plus upcoming skipped weeks so members don't show up to an empty church. */
+async function UpcomingWeeks({ series }: { series: Series }) {
   await connection();
-  if (endsAt >= new Date()) return null;
+  const now = new Date();
+  const next = nextOccurrence(series, now);
+  const soon = new Date(now.getTime() + 13 * 7 * 24 * 60 * 60 * 1000);
+  const skipped = occurrences(series, now, soon, { includeSkipped: true }).filter((o) => o.skipped);
+
+  return (
+    <>
+      {next && <span className="mt-2 block">Next: {longDate(next.startsAt)}</span>}
+      {skipped.map((o) => (
+        <span key={o.startsAt.getTime()} className="block font-medium text-destructive">
+          Not on {longDate(o.startsAt)}
+        </span>
+      ))}
+    </>
+  );
+}
+
+/** One-off events end once; a weekly series ends when it has no dates left. */
+async function EndedNotice({ series }: { series: Series }) {
+  await connection();
+  if (nextOccurrence(series, new Date())) return null;
   return (
     <div role="note" className="rounded-lg border bg-muted p-4">
       <p className="text-lg font-semibold">This event has ended</p>

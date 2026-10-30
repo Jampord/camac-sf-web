@@ -7,10 +7,12 @@ import { EventStatusBadge } from "@/components/event-status-badge";
 import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { eventStatus } from "@/lib/events/status";
-import { utcToManilaInput } from "@/lib/time";
+import { occurrences } from "@/lib/events/recurrence";
+import { formatManila, utcToManilaInput } from "@/lib/time";
 import { updateEvent } from "../actions";
 import { EventForm } from "../event-form";
 import { EventActions } from "./event-actions";
+import { UpcomingWeeks, type Week } from "./upcoming-weeks";
 
 export const metadata: Metadata = { title: "Edit event" };
 
@@ -35,6 +37,21 @@ async function EditEvent({ id }: { id: string }) {
   ]);
   if (!event) notFound();
   const status = eventStatus(event);
+
+  // Weekly events: the next 8 weeks (skipped ones included) for Skip / Bring back.
+  const now = new Date();
+  const weeks: Week[] =
+    event.recurrence === "WEEKLY"
+      ? occurrences(event, now, new Date(now.getTime() + 8 * 7 * 86_400_000), {
+          includeSkipped: true,
+        })
+          .slice(0, 8)
+          .map((o) => ({
+            startsAt: o.startsAt.toISOString(),
+            label: formatManila(o.startsAt, { weekday: "long", month: "short", day: "numeric" }),
+            skipped: o.skipped,
+          }))
+      : [];
 
   return (
     <>
@@ -76,6 +93,8 @@ async function EditEvent({ id }: { id: string }) {
 
       <EventActions id={event.id} status={status} />
 
+      {weeks.length > 0 && <UpcomingWeeks id={event.id} weeks={weeks} />}
+
       <EventForm
         action={updateEvent.bind(null, event.id)}
         ministries={ministries}
@@ -87,6 +106,10 @@ async function EditEvent({ id }: { id: string }) {
           startsAt: utcToManilaInput(event.startsAt).slice(0, event.allDay ? 10 : 16),
           endsAt: utcToManilaInput(event.endsAt).slice(0, event.allDay ? 10 : 16),
           allDay: event.allDay ? "on" : "",
+          recurrence: event.recurrence,
+          recurrenceUntil: event.recurrenceUntil
+            ? utcToManilaInput(event.recurrenceUntil).slice(0, 10)
+            : "",
           venue: event.venue,
           atChurchVenue: event.atChurchVenue ? "on" : "",
           ministryId: event.ministryId ?? "",
