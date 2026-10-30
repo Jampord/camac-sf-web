@@ -83,6 +83,18 @@ async function EditEvent({ id }: { id: string }) {
                 /events/{event.slug}
               </Link>
             )}
+            {/* Drafts have no public page, so nothing to scan to yet. */}
+            {status !== "draft" && (
+              <>
+                {" · "}
+                <Link
+                  href={`/events/${event.slug}/qr`}
+                  className="text-foreground underline underline-offset-4"
+                >
+                  Print QR code
+                </Link>
+              </>
+            )}
             <br />
             The link stays the same when you edit, so shared posts keep working.
           </p>
