@@ -49,6 +49,13 @@ export function manilaDateParts(date: Date): { year: number; month: number; day:
   return { year: get("year"), month: get("month"), day: get("day") };
 }
 
+/** The start (12:00 AM) of the Manila calendar day an instant falls on. */
+export function manilaMidnight(date: Date): Date {
+  const { year, month, day } = manilaDateParts(date);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return manilaInputToUtc(`${year}-${pad(month)}-${pad(day)}`);
+}
+
 /** Day of the week in Manila: 0 = Sunday … 6 = Saturday. */
 export function manilaWeekday(date: Date): number {
   const { year, month, day } = manilaDateParts(date);

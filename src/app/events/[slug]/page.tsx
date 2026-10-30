@@ -7,9 +7,8 @@ import { ChevronLeftIcon } from "lucide-react";
 import { DateBlock } from "@/components/date-block";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
-import { formatTimeRange } from "@/lib/events/format";
+import { formatLongDates, formatTimes } from "@/lib/events/format";
 import { getPublishedEventBySlug } from "@/lib/events/public";
-import { formatManila } from "@/lib/time";
 
 // Public event page (brief §6.2). Drafts, deleted events and wrong links are a real 404:
 // the event is looked up before anything streams, so Next can still send the 404 status.
@@ -32,12 +31,9 @@ export async function generateMetadata({ params }: PageProps<"/events/[slug]">):
   if (!event) return {};
   return {
     title: event.cancelledAt ? `Cancelled: ${event.title}` : event.title,
-    description: `${longDate(event.startsAt)}, ${formatTimeRange(event.startsAt, event.endsAt)} at ${event.venue}.`,
+    description: `${formatLongDates(event.startsAt, event.endsAt)}. ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`,
   };
 }
-
-const longDate = (date: Date) =>
-  formatManila(date, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
 export default async function EventPage({ params }: PageProps<"/events/[slug]">) {
   const event = await findEvent((await params).slug);
@@ -78,8 +74,8 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
 
         <dl className="grid gap-4 border-y py-5 text-lg sm:grid-cols-[8rem_1fr] sm:gap-x-6">
           <Detail label="When">
-            <span className="block">{longDate(event.startsAt)}</span>
-            <span className="block">{formatTimeRange(event.startsAt, event.endsAt)}</span>
+            <span className="block">{formatLongDates(event.startsAt, event.endsAt)}</span>
+            <span className="block">{formatTimes(event.startsAt, event.endsAt, event.allDay)}</span>
           </Detail>
           <Detail label="Where">
             <span className="flex flex-wrap items-center gap-2">

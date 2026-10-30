@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -47,31 +47,14 @@ export function EventForm({ action, ministries, defaults = {}, submitLabel }: Pr
           <FieldError>{error("title")}</FieldError>
         </Field>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          <Field data-invalid={invalid("startsAt")}>
-            <FieldLabel htmlFor="startsAt">Starts</FieldLabel>
-            <Input
-              id="startsAt"
-              name="startsAt"
-              type="datetime-local"
-              defaultValue={value("startsAt")}
-              aria-invalid={invalid("startsAt")}
-            />
-            <FieldError>{error("startsAt")}</FieldError>
-          </Field>
-          <Field data-invalid={invalid("endsAt")}>
-            <FieldLabel htmlFor="endsAt">Ends</FieldLabel>
-            <Input
-              id="endsAt"
-              name="endsAt"
-              type="datetime-local"
-              defaultValue={value("endsAt")}
-              aria-invalid={invalid("endsAt")}
-            />
-            <FieldError>{error("endsAt")}</FieldError>
-          </Field>
-          <FieldDescription className="sm:col-span-2">Times are Philippine time.</FieldDescription>
-        </div>
+        <WhenFields
+          initial={{
+            allDay: value("allDay") === "on",
+            startsAt: value("startsAt"),
+            endsAt: value("endsAt"),
+          }}
+          errors={{ startsAt: error("startsAt"), endsAt: error("endsAt") }}
+        />
 
         <Field data-invalid={invalid("venue")}>
           <FieldLabel htmlFor="venue">Venue</FieldLabel>
@@ -175,5 +158,84 @@ export function EventForm({ action, ministries, defaults = {}, submitLabel }: Pr
         </div>
       </FieldGroup>
     </form>
+  );
+}
+
+/**
+ * Start and end, as date-and-time pickers or, for all-day events, date-only pickers.
+ * Switching keeps the dates already chosen, and remembers the times in case it's switched back.
+ */
+function WhenFields({
+  initial,
+  errors,
+}: {
+  initial: { allDay: boolean; startsAt: string; endsAt: string };
+  errors: { startsAt?: string; endsAt?: string };
+}) {
+  const [allDay, setAllDay] = useState(initial.allDay);
+  const [startsAt, setStartsAt] = useState(initial.startsAt);
+  const [endsAt, setEndsAt] = useState(initial.endsAt);
+  const times = useRef({ start: "09:00", end: "12:00" });
+
+  function switchAllDay(next: boolean) {
+    if (next) {
+      // Remember the times, keep the dates.
+      if (startsAt.length > 10) times.current.start = startsAt.slice(11, 16);
+      if (endsAt.length > 10) times.current.end = endsAt.slice(11, 16);
+      setStartsAt(startsAt.slice(0, 10));
+      setEndsAt(endsAt.slice(0, 10));
+    } else {
+      setStartsAt(startsAt && `${startsAt.slice(0, 10)}T${times.current.start}`);
+      setEndsAt(endsAt && `${endsAt.slice(0, 10)}T${times.current.end}`);
+    }
+    setAllDay(next);
+  }
+
+  const type = allDay ? "date" : "datetime-local";
+
+  return (
+    <div className="grid gap-6 sm:grid-cols-2">
+      <Field orientation="horizontal" className="sm:col-span-2">
+        <Checkbox
+          id="allDay"
+          name="allDay"
+          checked={allDay}
+          onCheckedChange={(checked) => switchAllDay(checked === true)}
+        />
+        {/* Base UI names its checkbox via aria-labelledby="<id>-label", so the label needs that id. */}
+        <FieldLabel htmlFor="allDay" id="allDay-label" className="font-normal">
+          All day
+        </FieldLabel>
+      </Field>
+      <Field data-invalid={errors.startsAt ? true : undefined}>
+        <FieldLabel htmlFor="startsAt">{allDay ? "Start date" : "Starts"}</FieldLabel>
+        <Input
+          id="startsAt"
+          name="startsAt"
+          type={type}
+          value={startsAt}
+          onChange={(e) => setStartsAt(e.target.value)}
+          aria-invalid={errors.startsAt ? true : undefined}
+        />
+        <FieldError>{errors.startsAt}</FieldError>
+      </Field>
+      <Field data-invalid={errors.endsAt ? true : undefined}>
+        <FieldLabel htmlFor="endsAt">{allDay ? "End date" : "Ends"}</FieldLabel>
+        <Input
+          id="endsAt"
+          name="endsAt"
+          type={type}
+          value={endsAt}
+          onChange={(e) => setEndsAt(e.target.value)}
+          aria-invalid={errors.endsAt ? true : undefined}
+        />
+        <FieldError>{errors.endsAt}</FieldError>
+      </Field>
+      <FieldDescription className="sm:col-span-2">
+        {allDay
+          ? "For a one-day event, pick the same date twice. Longer events show on each day of the calendar."
+          : "Times are Philippine time."}
+      </FieldDescription>
+    </div>
   );
 }

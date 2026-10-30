@@ -36,6 +36,7 @@ async function AdminHome() {
       title: true,
       startsAt: true,
       endsAt: true,
+      allDay: true,
       venue: true,
       publishedAt: true,
       cancelledAt: true,
