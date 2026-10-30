@@ -106,32 +106,37 @@ function AgendaList({ events, now }: { events: PublicEvent[]; now: Date }) {
 function AgendaRow({ event, today }: { event: PublicEvent; today: boolean }) {
   const cancelled = event.cancelledAt !== null;
 
-  // Milestone 2 makes each row a link to the event's own page.
+  // The whole row is the link: a big tap target, and the title is its accessible name.
   return (
-    <li className="flex gap-4 py-4">
-      <DateBlock date={event.startsAt} today={today} />
-      <div className="flex min-w-0 flex-col gap-1 pt-0.5">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h3
-            className={cn(
-              "text-xl leading-snug font-semibold",
-              cancelled && "text-muted-foreground line-through",
+    <li>
+      <Link
+        href={`/events/${event.slug}`}
+        className="-mx-2 flex gap-4 rounded-lg px-2 py-4 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <DateBlock date={event.startsAt} today={today} />
+        <div className="flex min-w-0 flex-col gap-1 pt-0.5">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h3
+              className={cn(
+                "text-xl leading-snug font-semibold",
+                cancelled && "text-muted-foreground line-through",
+              )}
+            >
+              {event.title}
+            </h3>
+            {cancelled && <Badge variant="destructive">Cancelled</Badge>}
+          </div>
+          {cancelled && event.cancelNote && <p className="font-medium">{event.cancelNote}</p>}
+          <p>{formatTimeRange(event.startsAt, event.endsAt)}</p>
+          <p className="flex flex-wrap items-center gap-2 text-muted-foreground">
+            {event.venue}
+            {event.atChurchVenue && (
+              <Badge className="bg-accent text-accent-foreground">At the church</Badge>
             )}
-          >
-            {event.title}
-          </h3>
-          {cancelled && <Badge variant="destructive">Cancelled</Badge>}
+          </p>
+          <p className="text-muted-foreground">{event.ministry?.name ?? "Church-wide"}</p>
         </div>
-        {cancelled && event.cancelNote && <p className="font-medium">{event.cancelNote}</p>}
-        <p>{formatTimeRange(event.startsAt, event.endsAt)}</p>
-        <p className="flex flex-wrap items-center gap-2 text-muted-foreground">
-          {event.venue}
-          {event.atChurchVenue && (
-            <Badge className="bg-accent text-accent-foreground">At the church</Badge>
-          )}
-        </p>
-        <p className="text-muted-foreground">{event.ministry?.name ?? "Church-wide"}</p>
-      </div>
+      </Link>
     </li>
   );
 }

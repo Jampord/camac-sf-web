@@ -37,6 +37,31 @@ export async function getPublishedEvents() {
 
 export type PublicEvent = Awaited<ReturnType<typeof getPublishedEvents>>[number];
 
+/** One published, non-deleted event by its slug, or null (drafts and deleted events -> 404). */
+export async function getPublishedEventBySlug(slug: string) {
+  "use cache";
+  cacheTag(EVENTS_TAG);
+  cacheLife("hours");
+
+  return db.event.findFirst({
+    where: { slug, publishedAt: { not: null }, deletedAt: null },
+    select: {
+      slug: true,
+      title: true,
+      description: true,
+      startsAt: true,
+      endsAt: true,
+      venue: true,
+      atChurchVenue: true,
+      contactPerson: true,
+      attire: true,
+      cancelledAt: true,
+      cancelNote: true,
+      ministry: { select: { name: true } },
+    },
+  });
+}
+
 /** Ministries change only through the seed script, so they can be cached for days. */
 export async function getMinistries() {
   "use cache";

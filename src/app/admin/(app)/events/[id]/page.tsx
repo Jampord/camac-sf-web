@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DateBlock } from "@/components/date-block";
 import { EventStatusBadge } from "@/components/event-status-badge";
@@ -47,7 +48,17 @@ async function EditEvent({ id }: { id: string }) {
             <EventStatusBadge status={status} />
           </div>
           <p className="text-sm text-muted-foreground">
-            Link: <code className="break-all text-foreground">/events/{event.slug}</code>
+            Link:{" "}
+            {status === "draft" ? (
+              <span className="break-all text-foreground">/events/{event.slug}</span>
+            ) : (
+              <Link
+                href={`/events/${event.slug}`}
+                className="break-all text-foreground underline underline-offset-4"
+              >
+                /events/{event.slug}
+              </Link>
+            )}
             <br />
             The link stays the same when you edit, so shared posts keep working.
           </p>
