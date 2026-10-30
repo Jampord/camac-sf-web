@@ -23,7 +23,7 @@ export default function SignInPage({ searchParams }: PageProps<"/admin/sign-in">
           await signIn("google", { redirectTo: "/admin" });
         }}
       >
-        <Button type="submit" size="lg" className="h-11 w-full text-base">
+        <Button type="submit" size="lg" className="w-full text-base">
           Sign in with Google
         </Button>
       </form>

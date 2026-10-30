@@ -68,6 +68,12 @@ const EVENT_FIELDS = [
 /** The raw strings from the form, used to refill it after a failed submit. */
 export type EventFormValues = Partial<Record<EventField, string>>;
 
+/** useActionState state for the create/edit form. Empty = not submitted yet. */
+export type EventFormState = {
+  errors?: Partial<Record<EventField, string>>;
+  values?: EventFormValues;
+};
+
 export type ParsedEventForm =
   | { success: true; data: EventInput }
   | { success: false; errors: Partial<Record<EventField, string>>; values: EventFormValues };
