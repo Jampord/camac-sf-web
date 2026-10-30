@@ -1,8 +1,10 @@
 "use server";
 
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { db } from "@/lib/db";
 import { parsePrayerForm, type PrayerField } from "@/lib/prayer/input";
+import { notifyPrayerTeam } from "@/lib/prayer/notify";
 import { clientIp } from "@/lib/rate-limit";
 import { isRateLimited } from "@/lib/rate-limit-check";
 
@@ -24,10 +26,15 @@ export async function submitPrayerRequest(
   if (parsed.kind === "spam") return { sent: true };
   if (parsed.kind === "invalid") return { errors: parsed.errors };
 
-  if (await isRateLimited(clientIp(await headers()), "prayer", LIMIT_PER_HOUR)) {
+  const requestHeaders = await headers();
+  if (await isRateLimited(clientIp(requestHeaders), "prayer", LIMIT_PER_HOUR)) {
     return { message: "Please try again in a few minutes." };
   }
 
   await db.prayerRequest.create({ data: parsed.data });
+
+  // After the response, so nobody waits on Gmail to see their thank-you.
+  const origin = `${requestHeaders.get("x-forwarded-proto") ?? "https"}://${requestHeaders.get("host")}`;
+  after(() => notifyPrayerTeam(`${origin}/admin/prayer`));
   return { sent: true };
 }
