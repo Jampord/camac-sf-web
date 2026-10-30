@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { ChevronLeftIcon } from "lucide-react";
 import { InlinePending } from "@/components/link-pending";
 import { SiteHeader } from "@/components/site-header";
@@ -10,11 +12,17 @@ export const metadata: Metadata = {
   description: "How CAMAC - San Fernando handles prayer requests and visits to this site.",
 };
 
+const FALLBACK_CONTACT = "any church leader at a Sunday service";
+
+/** Read per request, not at build time: the build has no database to read it from (CI). */
+async function ContactName() {
+  await connection();
+  return (await getPrivacyContact()) ?? FALLBACK_CONTACT;
+}
+
 // The short privacy page (brief §6.7), written for RA 10173 as standard practice. Not legal
 // advice. Keep it in step with what the code does: if retention or access changes, change this.
-export default async function PrivacyPage() {
-  const contact = await getPrivacyContact();
-
+export default function PrivacyPage() {
   return (
     <>
       <SiteHeader />
@@ -56,7 +64,10 @@ export default async function PrivacyPage() {
             <h2 className="text-2xl font-bold tracking-tight">Asking for removal</h2>
             <p>
               To have your request removed or corrected, or to ask what we hold about you, contact{" "}
-              {contact ?? "any church leader at a Sunday service"}.
+              <Suspense fallback={FALLBACK_CONTACT}>
+                <ContactName />
+              </Suspense>
+              .
             </p>
           </section>
 

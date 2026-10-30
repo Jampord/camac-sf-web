@@ -36,7 +36,9 @@ test("the prayer form is one tap from the agenda, with its privacy notice", asyn
   await page.getByRole("link", { name: "Send a prayer request" }).click();
   await expect(page).toHaveURL(/\/prayer$/);
   await expect(page.getByLabel("Your prayer request")).toBeVisible();
-  await expect(page.getByLabel("It's OK to share this with the congregation")).not.toBeChecked();
+  await expect(
+    page.getByRole("checkbox", { name: "It's OK to share this with the congregation" }),
+  ).not.toBeChecked();
   await page.getByRole("link", { name: "How we handle your request" }).click();
   await expect(page).toHaveURL(/\/privacy$/);
   await expect(page.getByRole("heading", { name: "Privacy", level: 1 })).toBeVisible();
