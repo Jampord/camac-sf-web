@@ -19,6 +19,7 @@ import {
 } from "@/lib/events/recurrence";
 import { formatManila } from "@/lib/time";
 import { CopyAnnouncement } from "./copy-announcement";
+import { OpenBeacon } from "./open-beacon";
 import { ShareButton } from "./share-button";
 
 // Public event page (brief §6.2). Drafts, deleted events and wrong links are a real 404:
@@ -71,6 +72,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
 
   return (
     <>
+      <OpenBeacon slug={event.slug} />
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-6">
         <Link

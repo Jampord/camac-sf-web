@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { Share2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { recordStat } from "@/lib/events/stats";
 
 // Opens the phone's share sheet (brief §6.3). It shares just the title and link, so Messenger
 // and Facebook build their own preview from the share card; the full text is what
@@ -19,6 +20,7 @@ export function ShareButton({ title, slug }: { title: string; slug: string }) {
   async function share() {
     try {
       await navigator.share({ title, url: `${window.location.origin}/events/${slug}` });
+      recordStat(slug, "SHARE"); // only once something was actually shared
     } catch {
       // Closing the share sheet rejects too; there's nothing to tell the user either way.
     }

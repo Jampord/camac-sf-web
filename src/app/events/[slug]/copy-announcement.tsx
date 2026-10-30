@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { announcementText, type AnnouncementEvent } from "@/lib/events/announcement";
+import { recordStat } from "@/lib/events/stats";
 
 // Copies the ready-to-paste announcement (brief §6.3). The link is built from the address the
 // page is open on, so it is right on production, previews and localhost alike, without the
@@ -26,6 +27,8 @@ export function CopyAnnouncement({ event, slug }: { event: AnnouncementEvent; sl
 
   async function copy() {
     const text = announcementText(event, `${window.location.origin}/events/${slug}`);
+    // Counted on the tap: when the browser blocks copying, they copy it by hand instead.
+    recordStat(slug, "COPY");
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
