@@ -5,6 +5,7 @@ import {
   manilaDateParts,
   manilaInputToUtc,
   manilaWeekday,
+  utcToManilaInput,
 } from "./time";
 
 describe("manilaInputToUtc", () => {
@@ -42,6 +43,16 @@ describe("manilaDateParts", () => {
       month: 12,
       day: 1,
     });
+  });
+});
+
+describe("utcToManilaInput", () => {
+  it("renders a UTC instant as a Manila datetime-local value", () => {
+    expect(utcToManilaInput(new Date("2026-12-31T22:30:00Z"))).toBe("2027-01-01T06:30");
+  });
+
+  it("round-trips with manilaInputToUtc", () => {
+    expect(utcToManilaInput(manilaInputToUtc("2027-04-10T19:45"))).toBe("2027-04-10T19:45");
   });
 });
 

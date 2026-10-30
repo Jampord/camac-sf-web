@@ -167,6 +167,11 @@ export function EventForm({ action, ministries, defaults = {}, submitLabel }: Pr
               Fix the highlighted fields, then save again.
             </p>
           )}
+          {state.saved && !pending && (
+            <p role="status" className="text-sm text-muted-foreground">
+              Changes saved.
+            </p>
+          )}
         </div>
       </FieldGroup>
     </form>

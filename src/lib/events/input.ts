@@ -72,6 +72,7 @@ export type EventFormValues = Partial<Record<EventField, string>>;
 export type EventFormState = {
   errors?: Partial<Record<EventField, string>>;
   values?: EventFormValues;
+  saved?: boolean;
 };
 
 export type ParsedEventForm =

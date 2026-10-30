@@ -1,5 +1,6 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@/generated/prisma/client";
 import { requireAdmin } from "@/lib/dal";
@@ -15,21 +16,50 @@ export async function createEvent(
   formData: FormData,
 ): Promise<EventFormState> {
   const admin = await requireAdmin();
+  const result = await validate(formData);
+  if (!result.ok) return result.state;
 
+  const event = await createWithUniqueSlug(result.data, admin.id);
+  redirect(`/admin/events/${event.id}`);
+}
+
+/** Bound to the event id on the edit page: updateEvent.bind(null, id). */
+export async function updateEvent(
+  id: string,
+  _prev: EventFormState,
+  formData: FormData,
+): Promise<EventFormState> {
+  await requireAdmin();
+  const result = await validate(formData);
+  if (!result.ok) return result.state;
+
+  // `data` has no slug field, so the slug can't change here: shared links keep working.
+  // updateMany (not update) so a deleted or missing id is a no-op instead of an error.
+  await db.event.updateMany({ where: { id, deletedAt: null }, data: result.data });
+  refresh(); // re-render the page with the saved values
+  return { saved: true };
+}
+
+type Validated = { ok: true; data: EventInput } | { ok: false; state: EventFormState };
+
+/** Form rules from parseEventForm, plus the one check that needs the database. */
+async function validate(formData: FormData): Promise<Validated> {
   const parsed = parseEventForm(formData);
-  if (!parsed.success) return { errors: parsed.errors, values: parsed.values };
+  if (!parsed.success) {
+    return { ok: false, state: { errors: parsed.errors, values: parsed.values } };
+  }
 
   const { ministryId } = parsed.data;
   if (ministryId && !(await db.ministry.findUnique({ where: { id: ministryId } }))) {
     return {
-      errors: { ministryId: "Pick a ministry from the list." },
-      values: Object.fromEntries(formData) as EventFormState["values"],
+      ok: false,
+      state: {
+        errors: { ministryId: "Pick a ministry from the list." },
+        values: Object.fromEntries(formData) as EventFormState["values"],
+      },
     };
   }
-
-  await createWithUniqueSlug(parsed.data, admin.id);
-  // Milestone 4 changes this to the new event's edit page.
-  redirect("/admin");
+  return { ok: true, data: parsed.data };
 }
 
 /** The slug is set once, here, and never changed (brief §6.1). */
