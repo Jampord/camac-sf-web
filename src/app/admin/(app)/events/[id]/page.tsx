@@ -115,6 +115,7 @@ async function EditEvent({ id }: { id: string }) {
           ministryId: event.ministryId ?? "",
           contactPerson: event.contactPerson ?? "",
           attire: event.attire ?? "",
+          posterUrl: event.posterUrl ?? "",
         }}
       />
     </>

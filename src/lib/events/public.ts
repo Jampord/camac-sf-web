@@ -63,6 +63,7 @@ export async function getPublishedEventBySlug(slug: string) {
       atChurchVenue: true,
       contactPerson: true,
       attire: true,
+      posterUrl: true,
       cancelledAt: true,
       cancelNote: true,
       ministry: { select: { name: true } },

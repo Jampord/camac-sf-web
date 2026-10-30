@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { EventField, EventFormState, EventFormValues } from "@/lib/events/input";
+import { POSTER_ACCEPT, POSTER_MAX_BYTES } from "@/lib/poster-limits";
+import { getPosterUploadSignature } from "./actions";
 
 type Props = {
   action: (state: EventFormState, formData: FormData) => Promise<EventFormState>;
@@ -145,6 +147,8 @@ export function EventForm({ action, ministries, defaults = {}, submitLabel }: Pr
             <FieldError>{error("attire")}</FieldError>
           </Field>
         </div>
+
+        <PosterField initial={value("posterUrl")} error={error("posterUrl")} />
 
         <div className="flex flex-wrap items-center gap-4">
           <Button type="submit" size="lg" disabled={pending}>
@@ -294,5 +298,104 @@ function RepeatFields({
         </FieldDescription>
       )}
     </div>
+  );
+}
+
+/**
+ * Optional poster (brief §5): uploads straight from the browser to Cloudinary with a signature
+ * from our server, then keeps only the image address in a hidden field for the form to save.
+ */
+function PosterField({ initial, error }: { initial: string; error?: string }) {
+  const [url, setUrl] = useState(initial);
+  const [status, setStatus] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  async function upload(file: File) {
+    if (!POSTER_ACCEPT.split(",").includes(file.type)) {
+      setStatus("Choose a JPG, PNG or WebP image.");
+      return;
+    }
+    if (file.size > POSTER_MAX_BYTES) {
+      setStatus("That image is larger than 5 MB. Export a smaller one from Canva.");
+      return;
+    }
+    setUploading(true);
+    setStatus("Uploading…");
+    try {
+      const sig = await getPosterUploadSignature();
+      const body = new FormData();
+      body.set("file", file);
+      body.set("api_key", sig.apiKey);
+      body.set("timestamp", String(sig.timestamp));
+      body.set("folder", sig.folder);
+      body.set("allowed_formats", sig.allowedFormats);
+      body.set("signature", sig.signature);
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {
+        method: "POST",
+        body,
+      });
+      if (!response.ok) throw new Error(`Upload failed (${response.status})`);
+      const { secure_url } = (await response.json()) as { secure_url: string };
+      setUrl(secure_url);
+      setStatus("Uploaded. Save to keep it.");
+    } catch {
+      setStatus("The upload didn't work. Check your connection and try again.");
+    } finally {
+      setUploading(false);
+      if (fileInput.current) fileInput.current.value = "";
+    }
+  }
+
+  return (
+    <Field data-invalid={error ? true : undefined}>
+      <FieldLabel htmlFor="poster">Poster</FieldLabel>
+      <input type="hidden" name="posterUrl" value={url} />
+      {url && (
+        // eslint-disable-next-line @next/next/no-img-element -- Cloudinary resizes it; next/image would resize twice
+        <img
+          src={url.replace("/image/upload/", "/image/upload/f_auto,q_auto,w_480/")}
+          alt="Poster preview"
+          className="max-h-80 w-fit rounded-lg border object-contain"
+        />
+      )}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={uploading}
+          onClick={() => fileInput.current?.click()}
+        >
+          {url ? "Change poster" : "Choose poster"}
+        </Button>
+        {url && (
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={uploading}
+            onClick={() => {
+              setUrl("");
+              setStatus("Poster removed. Save to keep the change.");
+            }}
+          >
+            Remove poster
+          </Button>
+        )}
+      </div>
+      <input
+        ref={fileInput}
+        id="poster"
+        type="file"
+        accept={POSTER_ACCEPT}
+        className="sr-only"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void upload(file);
+        }}
+      />
+      <FieldDescription>Optional. JPG, PNG or WebP, up to 5 MB, e.g. the Canva poster.</FieldDescription>
+      {status && <p role="status" className="text-sm">{status}</p>}
+      <FieldError>{error}</FieldError>
+    </Field>
   );
 }

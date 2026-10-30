@@ -35,6 +35,7 @@ describe("parseEventForm", () => {
         ministryId: null,
         contactPerson: "Ate Joy 0917 000 0000",
         attire: null,
+        posterUrl: null,
       },
     });
   });

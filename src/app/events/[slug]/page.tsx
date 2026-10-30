@@ -8,6 +8,7 @@ import { DateBlock } from "@/components/date-block";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { formatLongDates, formatTimes } from "@/lib/events/format";
+import { posterImageUrl } from "@/lib/cloudinary";
 import { getPublishedEventBySlug } from "@/lib/events/public";
 import {
   describeRepeat,
@@ -84,6 +85,22 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
             {event.title}
           </h1>
         </div>
+
+        {event.posterUrl && (
+          // Tapping opens the full image, so the poster's small print stays readable.
+          <a href={event.posterUrl} target="_blank" rel="noopener" className="w-fit self-center">
+            {/* eslint-disable-next-line @next/next/no-img-element -- Cloudinary resizes it; next/image would resize twice */}
+            <img
+              src={posterImageUrl(event.posterUrl, "f_auto,q_auto,w_800")}
+              srcSet={[480, 800, 1200]
+                .map((w) => `${posterImageUrl(event.posterUrl!, `f_auto,q_auto,w_${w}`)} ${w}w`)
+                .join(", ")}
+              sizes="(min-width: 42rem) 40rem, 100vw"
+              alt={`Poster for ${event.title}`}
+              className="max-h-[70vh] w-auto rounded-lg border object-contain"
+            />
+          </a>
+        )}
 
         <dl className="grid gap-4 border-y py-5 text-lg sm:grid-cols-[8rem_1fr] sm:gap-x-6">
           <Detail label="When">
