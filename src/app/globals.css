@@ -1,29 +1,111 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-/* High contrast by default: many readers are older members (brief §6.2). */
+/* Dark mode follows the phone's setting; there is no toggle. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
+
+/*
+ * Brand palette, sampled from the CAMAC - San Fernando logo:
+ *   maroon   #801214  logo brush mark      -> primary (buttons, links, focus)
+ *   charcoal #333333  "CAMAC" wordmark     -> body text
+ *   red      #D42027  "San Fernando"       -> Sunday dates (wall-calendar red)
+ * High contrast throughout: many readers are older members (brief §6.2).
+ */
 :root {
   --background: #ffffff;
-  --foreground: #111111;
-  --muted: #4a4a4a;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --font-sans: var(--font-geist-sans);
+  --foreground: #333333;
+  --card: #ffffff;
+  --card-foreground: #333333;
+  --popover: #ffffff;
+  --popover-foreground: #333333;
+  --primary: #801214;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f4;
+  --secondary-foreground: #333333;
+  --muted: #f4f4f4;
+  --muted-foreground: #5f5f5f;
+  --accent: #f7e8e8; /* maroon tint, e.g. behind "Today" */
+  --accent-foreground: #801214;
+  --destructive: #b42318;
+  --border: #dddddd;
+  --input: #949494; /* 3:1 against white, so input edges stay visible */
+  --ring: #801214;
+  --sunday: #d42027;
+  --radius: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #f5f5f5;
-    --muted: #c4c4c4;
+    --background: #181314;
+    --foreground: #f2eded;
+    --card: #221b1c;
+    --card-foreground: #f2eded;
+    --popover: #221b1c;
+    --popover-foreground: #f2eded;
+    --primary: #ef8a8d;
+    --primary-foreground: #2a0a0b;
+    --secondary: #2a2223;
+    --secondary-foreground: #f2eded;
+    --muted: #2a2223;
+    --muted-foreground: #b8aeaf;
+    --accent: #3a1e20;
+    --accent-foreground: #f5c6c8;
+    --destructive: #f87171;
+    --border: #3a3233;
+    --input: #7a6d6e;
+    --ring: #ef8a8d;
+    --sunday: #ff6b70;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+@theme inline {
+  --font-sans: var(--font-atkinson);
+  --font-heading: var(--font-atkinson);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sunday: var(--sunday);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  /* 18px base. Every rem-based size (text, spacing, shadcn components) scales with it. */
+  html {
+    font-size: 112.5%;
+    @apply font-sans;
+  }
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }

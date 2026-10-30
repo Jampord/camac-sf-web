@@ -1,13 +1,19 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { signIn } from "@/auth";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Admin sign-in" };
 
 export default function SignInPage({ searchParams }: PageProps<"/admin/sign-in">) {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-4 py-10">
-      <h1 className="text-3xl font-bold">Admin sign-in</h1>
+    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-10">
+      <Image src="/camac-mark.png" alt="" width={447} height={418} priority className="h-20 w-auto self-start" />
+      <div className="flex flex-col gap-2">
+        <h1 className="font-heading text-3xl font-bold tracking-tight">Admin sign-in</h1>
+        <p className="text-muted-foreground">For church admins managing events.</p>
+      </div>
       <Suspense>
         <SignInError searchParams={searchParams} />
       </Suspense>
@@ -17,14 +23,10 @@ export default function SignInPage({ searchParams }: PageProps<"/admin/sign-in">
           await signIn("google", { redirectTo: "/admin" });
         }}
       >
-        <button
-          type="submit"
-          className="w-full rounded-lg bg-foreground px-4 py-3 font-semibold text-background"
-        >
+        <Button type="submit" size="lg" className="h-11 w-full text-base">
           Sign in with Google
-        </button>
+        </Button>
       </form>
-      <p className="text-base text-muted">Only church admins can sign in.</p>
     </main>
   );
 }
@@ -43,7 +45,10 @@ async function SignInError({
       : "Sign-in didn't work. Please try again.";
 
   return (
-    <p role="alert" className="rounded-lg border border-red-700 p-3 text-red-700">
+    <p
+      role="alert"
+      className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-destructive"
+    >
       {message}
     </p>
   );
