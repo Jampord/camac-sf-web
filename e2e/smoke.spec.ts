@@ -6,6 +6,15 @@ test("home page loads", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Upcoming events" })).toBeVisible();
 });
 
+test("past events are one tap from the agenda", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Past events" }).click();
+  await expect(page).toHaveURL(/\/past$/);
+  await expect(page.getByRole("heading", { name: "Past events", level: 1 })).toBeVisible();
+  await page.getByRole("link", { name: "Upcoming events" }).click();
+  await expect(page).toHaveURL(/\/$/);
+});
+
 // Works with or without events in the database (CI starts empty, dev has data).
 test("ministry chips filter the agenda through the URL", async ({ page }) => {
   await page.goto("/");
