@@ -74,6 +74,19 @@ export async function getPublishedEventBySlug(slug: string) {
   });
 }
 
+/** Setting row holding the church contact named on /privacy. */
+export const PRIVACY_CONTACT_KEY = "privacyContact";
+
+/** Who to ask about a prayer request, or null until an admin enters it. Saving updates the tag. */
+export async function getPrivacyContact(): Promise<string | null> {
+  "use cache";
+  cacheTag(EVENTS_TAG);
+  cacheLife("days");
+
+  const setting = await db.setting.findUnique({ where: { key: PRIVACY_CONTACT_KEY } });
+  return setting?.value || null;
+}
+
 /** The church street address admins entered, or null until they do. Saving it updates the tag. */
 export async function getChurchAddress(): Promise<string | null> {
   "use cache";

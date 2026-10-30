@@ -10,14 +10,14 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
     <>
       <SiteHeader />
       <nav aria-label="Admin" className="border-b bg-muted">
-        <div className="mx-auto flex w-full max-w-2xl gap-6 px-4 py-2 text-sm font-medium">
+        <div className="mx-auto flex w-full max-w-2xl gap-3 px-4 py-2 text-sm font-medium sm:gap-6">
           {/* Each link shows a small spinner if its page is slow to load. */}
           {[
             ["/admin", "Events"],
             ["/admin/events/new", "New event"],
             ["/admin/events/deleted", "Recently deleted"],
           ].map(([href, label]) => (
-            <Link key={href} href={href} className="flex items-center gap-1.5 py-1 hover:text-primary">
+            <Link key={href} href={href} className="flex items-center gap-1.5 py-1 whitespace-nowrap hover:text-primary">
               {label}
               <InlinePending />
             </Link>

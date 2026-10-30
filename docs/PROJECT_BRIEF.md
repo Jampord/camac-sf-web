@@ -154,7 +154,7 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 ### 6.7 Prayer requests
 
 - **Public form, no login.** Fields: request (required), name (optional — anonymous allowed), contact for follow-up (optional, "if you'd like someone to reach out"), "OK to share with the congregation" checkbox (**default off**; stored for a future public wall, not used in MVP).
-- **Privacy notice** (Data Privacy Act, RA 10173 — standard practice, not legal advice): a two-line notice above Submit (who sees it, auto-deleted after a year, how to ask for removal) plus a short **/privacy** page naming a church contact.
+- **Privacy notice** (Data Privacy Act, RA 10173 — standard practice, not legal advice): a two-line notice above Submit (who sees it, auto-deleted after a year, how to ask for removal) plus a short **/privacy** page naming a church contact (entered on the admin home, a `Setting`, never in the public repo). Because `keepAsTestimony` requests outlive the year, the notice and page say so, and the page discloses the maintainer's database access.
 - **Spam protection:** hidden honeypot field + a **loose per-IP rate limit (~10 submissions/hour)** — several people may submit from the same church Wi-Fi. Stores a salted hash of the IP, deleted within 24h. Blocked users see a kind message ("Please try again in a few minutes"). **No CAPTCHA.**
 - **Notifications:** each new request emails the `canViewPrayer` admins with **only "New prayer request" and a link** — never the request text, name or contact.
 - **Visibility:** only admins with `canViewPrayer`.
