@@ -30,6 +30,18 @@ test("the ministry dropdown filters the agenda through the URL", async ({ page }
   await expect(page.getByLabel("Ministry")).toHaveValue("youth");
 });
 
+// Doesn't submit: CI has no prayer data to clean up, and the form must never need a sign-in.
+test("the prayer form is one tap from the agenda, with its privacy notice", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Send a prayer request" }).click();
+  await expect(page).toHaveURL(/\/prayer$/);
+  await expect(page.getByLabel("Your prayer request")).toBeVisible();
+  await expect(page.getByLabel("It's OK to share this with the congregation")).not.toBeChecked();
+  await page.getByRole("link", { name: "How we handle your request" }).click();
+  await expect(page).toHaveURL(/\/privacy$/);
+  await expect(page.getByRole("heading", { name: "Privacy", level: 1 })).toBeVisible();
+});
+
 // Drafts, deleted events and wrong links show the not-found page and are kept out of search
 // results and link previews. The status code is 404 once cached; the very first visit to a URL
 // streams with 200 plus noindex (Next's documented "soft 404" with Partial Prefetching), so the

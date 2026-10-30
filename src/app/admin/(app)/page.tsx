@@ -12,6 +12,7 @@ import { totalsByEvent } from "@/lib/events/stats";
 import { ChurchAddress } from "./church-address";
 import { EventList } from "./event-list";
 import { MetricPanel } from "./metric-panel";
+import { PrivacyContact } from "./privacy-contact";
 
 export const metadata: Metadata = { title: "Admin" };
 
@@ -96,6 +97,7 @@ async function AdminHome() {
       )}
 
       <ChurchAddress />
+      <PrivacyContact />
 
       <footer className="mt-auto flex flex-wrap items-center gap-4 border-t pt-6 text-sm">
         <span>
