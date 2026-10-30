@@ -56,6 +56,11 @@ export function EventForm({ action, ministries, defaults = {}, submitLabel }: Pr
           errors={{ startsAt: error("startsAt"), endsAt: error("endsAt") }}
         />
 
+        <RepeatFields
+          initial={{ recurrence: value("recurrence") || "NONE", until: value("recurrenceUntil") }}
+          errors={{ recurrence: error("recurrence"), until: error("recurrenceUntil") }}
+        />
+
         <Field data-invalid={invalid("venue")}>
           <FieldLabel htmlFor="venue">Venue</FieldLabel>
           <Input
@@ -236,6 +241,58 @@ function WhenFields({
           ? "For a one-day event, pick the same date twice. Longer events show on each day of the calendar."
           : "Times are Philippine time."}
       </FieldDescription>
+    </div>
+  );
+}
+
+/** Weekly or not at all (brief §6.1). "Repeat until" only shows for weekly events. */
+function RepeatFields({
+  initial,
+  errors,
+}: {
+  initial: { recurrence: string; until: string };
+  errors: { recurrence?: string; until?: string };
+}) {
+  const [recurrence, setRecurrence] = useState(initial.recurrence);
+  const weekly = recurrence === "WEEKLY";
+
+  return (
+    <div className="grid gap-6 sm:grid-cols-2">
+      <Field data-invalid={errors.recurrence ? true : undefined}>
+        <FieldLabel htmlFor="recurrence">Repeats</FieldLabel>
+        <NativeSelect
+          id="recurrence"
+          name="recurrence"
+          value={recurrence}
+          onChange={(e) => setRecurrence(e.target.value)}
+          aria-invalid={errors.recurrence ? true : undefined}
+          className="w-full"
+        >
+          <NativeSelectOption value="NONE">Doesn&apos;t repeat</NativeSelectOption>
+          <NativeSelectOption value="WEEKLY">Every week</NativeSelectOption>
+        </NativeSelect>
+        <FieldError>{errors.recurrence}</FieldError>
+      </Field>
+      {weekly && (
+        <Field data-invalid={errors.until ? true : undefined}>
+          <FieldLabel htmlFor="recurrenceUntil">Repeat until</FieldLabel>
+          <Input
+            id="recurrenceUntil"
+            name="recurrenceUntil"
+            type="date"
+            defaultValue={initial.until}
+            aria-invalid={errors.until ? true : undefined}
+          />
+          <FieldDescription>Optional. Leave empty to keep repeating.</FieldDescription>
+          <FieldError>{errors.until}</FieldError>
+        </Field>
+      )}
+      {weekly && (
+        <FieldDescription className="sm:col-span-2">
+          Same day and time every week. To skip a single week, save first, then use Upcoming dates
+          on this page.
+        </FieldDescription>
+      )}
     </div>
   );
 }

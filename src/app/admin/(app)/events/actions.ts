@@ -7,7 +7,9 @@ import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { EVENTS_TAG } from "@/lib/events/public";
 import { parseEventForm, type EventFormState, type EventInput } from "@/lib/events/input";
+import { occurrences } from "@/lib/events/recurrence";
 import { slugBase, uniqueSlug } from "@/lib/slug";
+import { manilaMidnight } from "@/lib/time";
 
 // Server Actions can be called by a direct POST, not just through our UI,
 // so every action checks requireAdmin() itself.
@@ -106,6 +108,40 @@ export async function restoreEvent(id: string): Promise<LifecycleResult> {
   updateTag(EVENTS_TAG); // public pages show the change right away
   refresh();
   return { changed: count > 0 };
+}
+
+/**
+ * Skip one week of a weekly event, or bring it back (brief §6.1: e.g. no prayer meeting in
+ * Holy Week). `weekStartsAt` is that week's start time as an ISO string.
+ */
+export async function setWeekSkipped(
+  id: string,
+  weekStartsAt: string,
+  skip: boolean,
+): Promise<LifecycleResult> {
+  await requireAdmin();
+  const event = await db.event.findFirst({
+    where: { id, deletedAt: null, recurrence: "WEEKLY" },
+    select: { startsAt: true, endsAt: true, recurrence: true, recurrenceUntil: true, skipDates: true },
+  });
+  if (!event) return { changed: false };
+
+  // Only accept a date that really is one of this series' weeks.
+  const week = new Date(weekStartsAt);
+  const isWeek = occurrences(event, week, week, { includeSkipped: true }).some(
+    (o) => o.startsAt.getTime() === week.getTime(),
+  );
+  if (!isWeek) return { changed: false };
+
+  const day = manilaMidnight(week).getTime();
+  const others = event.skipDates.filter((d) => d.getTime() !== day);
+  const skipDates = skip ? [...others, new Date(day)] : others;
+  if (skipDates.length === event.skipDates.length) return { changed: false };
+
+  await db.event.update({ where: { id }, data: { skipDates } });
+  updateTag(EVENTS_TAG); // public pages show the change right away
+  refresh();
+  return { changed: true };
 }
 
 type Validated = { ok: true; data: EventInput } | { ok: false; state: EventFormState };

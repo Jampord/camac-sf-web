@@ -28,6 +28,8 @@ describe("parseEventForm", () => {
         startsAt: new Date("2027-04-10T01:00:00Z"),
         endsAt: new Date("2027-04-12T07:00:00Z"),
         allDay: false,
+        recurrence: "NONE",
+        recurrenceUntil: null,
         venue: "Camp Resort, La Union",
         atChurchVenue: false,
         ministryId: null,
@@ -105,6 +107,66 @@ describe("parseEventForm", () => {
       expect(result.success).toBe(false);
       if (result.success) return;
       expect(result.errors.endsAt).toBe("Enter a valid date.");
+    });
+  });
+
+  describe("weekly events", () => {
+    const weekly = {
+      ...valid,
+      startsAt: "2027-04-11T09:00",
+      endsAt: "2027-04-11T12:00",
+      recurrence: "WEEKLY",
+      recurrenceUntil: "",
+    };
+
+    it("reads the repeat choice, with no end date by default", () => {
+      const result = parseEventForm(form(weekly));
+      expect(result.success && result.data).toMatchObject({
+        recurrence: "WEEKLY",
+        recurrenceUntil: null,
+      });
+    });
+
+    it("stores 'repeat until' as the end of that Manila day", () => {
+      const result = parseEventForm(form({ ...weekly, recurrenceUntil: "2027-06-27" }));
+      expect(result.success && result.data.recurrenceUntil).toEqual(
+        new Date("2027-06-27T15:59:00Z"),
+      );
+    });
+
+    it("ignores 'repeat until' for events that don't repeat", () => {
+      const result = parseEventForm(
+        form({ ...weekly, recurrence: "NONE", recurrenceUntil: "2027-06-27" }),
+      );
+      expect(result.success && result.data.recurrenceUntil).toBeNull();
+    });
+
+    it("treats a missing repeat choice as not repeating", () => {
+      const data = form(weekly);
+      data.delete("recurrence");
+      const result = parseEventForm(data);
+      expect(result.success && result.data.recurrence).toBe("NONE");
+    });
+
+    it("requires a weekly event to start and end on the same day", () => {
+      const result = parseEventForm(form({ ...weekly, endsAt: "2027-04-12T12:00" }));
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.errors).toEqual({ endsAt: "A weekly event has to end on the day it starts." });
+    });
+
+    it("rejects a 'repeat until' date before the first date", () => {
+      const result = parseEventForm(form({ ...weekly, recurrenceUntil: "2027-04-01" }));
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.errors).toEqual({ recurrenceUntil: "Pick a date on or after the first date." });
+    });
+
+    it("rejects unknown repeat choices", () => {
+      const result = parseEventForm(form({ ...weekly, recurrence: "DAILY" }));
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.errors.recurrence).toBe("Pick how often it repeats.");
     });
   });
 });

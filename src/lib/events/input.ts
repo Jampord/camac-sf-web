@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { eventDays } from "@/lib/events/format";
 import { isManilaInput, manilaInputToUtc } from "@/lib/time";
 
 // Validates the admin event form (brief §6.1). Date/time inputs are Manila wall-clock values.
@@ -36,6 +37,12 @@ export const eventInputSchema = z
     startsAt: z.string().trim().min(1, "Start is required."),
     endsAt: z.string().trim().min(1, "End is required."),
     allDay: checkbox,
+    // Weekly or not at all (brief §6.1). Missing = doesn't repeat.
+    recurrence: z
+      .enum(["NONE", "WEEKLY"], { error: "Pick how often it repeats." })
+      .optional()
+      .transform((value) => value ?? "NONE"),
+    recurrenceUntil: z.string().trim().optional(),
     venue: requiredText("Venue", 200),
     atChurchVenue: checkbox,
     ministryId: z
@@ -56,12 +63,21 @@ export const eventInputSchema = z
         ctx.addIssue({ code: "custom", path: [field], message });
       }
     }
+    const until = repeatUntil(event);
+    if (until && !isManilaInput(until)) {
+      ctx.addIssue({ code: "custom", path: ["recurrenceUntil"], message: "Enter a valid date." });
+    }
   })
-  .transform((event) => ({
-    ...event,
-    startsAt: manilaInputToUtc(event.allDay ? dateOnly(event.startsAt) : event.startsAt),
-    endsAt: manilaInputToUtc(event.allDay ? `${dateOnly(event.endsAt)}T23:59` : event.endsAt),
-  }))
+  .transform((event) => {
+    const until = repeatUntil(event);
+    return {
+      ...event,
+      startsAt: manilaInputToUtc(event.allDay ? dateOnly(event.startsAt) : event.startsAt),
+      endsAt: manilaInputToUtc(event.allDay ? `${dateOnly(event.endsAt)}T23:59` : event.endsAt),
+      // The last week included: stored as the end of that Manila day.
+      recurrenceUntil: until ? manilaInputToUtc(`${until}T23:59`) : null,
+    };
+  })
   .superRefine((event, ctx) => {
     if (event.endsAt < event.startsAt) {
       ctx.addIssue({
@@ -71,8 +87,31 @@ export const eventInputSchema = z
           ? "The end date must be on or after the start date."
           : "The end must be after the start.",
       });
+      return;
+    }
+    if (event.recurrence !== "WEEKLY") return;
+    // Every week's occurrence is the same single day; multi-day repeats aren't supported.
+    if (eventDays(event.startsAt, event.endsAt).length > 1) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["endsAt"],
+        message: "A weekly event has to end on the day it starts.",
+      });
+    }
+    if (event.recurrenceUntil && event.recurrenceUntil < event.startsAt) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["recurrenceUntil"],
+        message: "Pick a date on or after the first date.",
+      });
     }
   });
+
+/** The "repeat until" date (YYYY-MM-DD) for weekly events; ignored otherwise. */
+function repeatUntil(event: { recurrence: string; recurrenceUntil?: string }): string | null {
+  if (event.recurrence !== "WEEKLY" || !event.recurrenceUntil) return null;
+  return dateOnly(event.recurrenceUntil);
+}
 
 export type EventInput = z.output<typeof eventInputSchema>;
 export type EventField = keyof z.input<typeof eventInputSchema>;
@@ -83,6 +122,8 @@ const EVENT_FIELDS = [
   "startsAt",
   "endsAt",
   "allDay",
+  "recurrence",
+  "recurrenceUntil",
   "venue",
   "atChurchVenue",
   "ministryId",
