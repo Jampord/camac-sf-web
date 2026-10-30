@@ -63,6 +63,13 @@ async function Inbox({ archived }: { archived: boolean }) {
       <p className="text-sm text-muted-foreground">
         Requests are archived after 60 days and deleted after one year, unless kept as a testimony.
       </p>
+      <Link
+        href="/prayer/qr"
+        className="flex w-fit items-center gap-2 rounded-md py-2 font-medium underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        Print a QR code for the request form
+        <InlinePending />
+      </Link>
     </>
   );
 }
