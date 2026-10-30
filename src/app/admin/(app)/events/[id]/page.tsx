@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DateBlock } from "@/components/date-block";
@@ -37,6 +38,9 @@ async function EditEvent({ id }: { id: string }) {
   ]);
   if (!event) notFound();
   const status = eventStatus(event);
+  // The public address this request came in on (production, a preview, or localhost).
+  const requestHeaders = await headers();
+  const origin = `${requestHeaders.get("x-forwarded-proto") ?? "https"}://${requestHeaders.get("host")}`;
 
   // Weekly events: the next 8 weeks (skipped ones included) for Skip / Bring back.
   const now = new Date();
@@ -79,6 +83,22 @@ async function EditEvent({ id }: { id: string }) {
             <br />
             The link stays the same when you edit, so shared posts keep working.
           </p>
+          {status !== "draft" && (
+            // Facebook and Messenger cache a link's preview; a new share card URL alone isn't
+            // picked up until Facebook re-reads the page (brief §6.3).
+            <p className="text-sm text-muted-foreground">
+              Already posted the link? After saving changes,{" "}
+              <a
+                href={`https://developers.facebook.com/tools/debug/?q=${encodeURIComponent(`${origin}/events/${event.slug}`)}`}
+                target="_blank"
+                rel="noopener"
+                className="text-foreground underline underline-offset-4"
+              >
+                refresh the preview on Facebook
+              </a>{" "}
+              and tap <span className="font-medium text-foreground">Scrape Again</span>.
+            </p>
+          )}
         </div>
       </div>
 
