@@ -19,6 +19,16 @@ export function manilaInputToUtc(value: string): Date {
   return date;
 }
 
+/** True if `value` is a well-formed Manila date/time input that manilaInputToUtc accepts. */
+export function isManilaInput(value: string): boolean {
+  try {
+    manilaInputToUtc(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** The Manila calendar date of an instant. */
 export function manilaDateParts(date: Date): { year: number; month: number; day: number } {
   const parts = new Intl.DateTimeFormat("en-US", {
