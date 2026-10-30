@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { signOut } from "@/auth";
+import { InlinePending } from "@/components/link-pending";
 import { EventListSkeleton } from "@/components/skeletons";
 import { SubmitButton } from "@/components/submit-button";
 import { buttonVariants } from "@/components/ui/button";
@@ -69,8 +70,28 @@ async function AdminHome() {
   const past = listed.filter((event) => !event.upcoming).reverse();
   const stats = totalsByEvent(await statRows); // all-time counts per event
 
+  // Only the prayer team learns this exists, or how many there are.
+  const newPrayers = admin.canViewPrayer
+    ? await db.prayerRequest.count({ where: { status: "NEW", archivedAt: null } })
+    : 0;
+
   return (
     <>
+      {admin.canViewPrayer && (
+        <Link
+          href="/admin/prayer"
+          className="flex items-center justify-between gap-3 rounded-lg border p-4 font-semibold outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <span>Prayer requests</span>
+          <span className="flex items-center gap-2">
+            <InlinePending />
+            <span className={newPrayers > 0 ? "text-primary" : "font-normal text-muted-foreground"}>
+              {newPrayers > 0 ? `${newPrayers} new` : "None new"}
+            </span>
+          </span>
+        </Link>
+      )}
+
       <MetricPanel now={now} />
 
       {upcoming.length > 0 ? (

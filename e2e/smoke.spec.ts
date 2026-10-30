@@ -63,6 +63,7 @@ for (const path of [
   "/admin/events/new",
   "/admin/events/deleted",
   "/admin/events/some-id",
+  "/admin/prayer",
 ]) {
   test(`${path} redirects signed-out visitors to sign-in`, async ({ page }) => {
     await page.goto(path);
