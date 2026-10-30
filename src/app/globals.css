@@ -2,8 +2,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Dark mode follows the phone's setting; there is no toggle. */
-@custom-variant dark (@media (prefers-color-scheme: dark));
+/*
+ * Dark mode is the `dark` class on <html>. The inline script in layout.tsx sets it before
+ * first paint, from the saved choice or else the phone's setting; ThemeToggle flips it.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /*
  * Brand palette, sampled from the CAMAC - San Fernando logo:
@@ -33,30 +36,31 @@
   --ring: #801214;
   --sunday: #d42027;
   --radius: 0.5rem;
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #181314;
-    --foreground: #f2eded;
-    --card: #221b1c;
-    --card-foreground: #f2eded;
-    --popover: #221b1c;
-    --popover-foreground: #f2eded;
-    --primary: #ef8a8d;
-    --primary-foreground: #2a0a0b;
-    --secondary: #2a2223;
-    --secondary-foreground: #f2eded;
-    --muted: #2a2223;
-    --muted-foreground: #b8aeaf;
-    --accent: #3a1e20;
-    --accent-foreground: #f5c6c8;
-    --destructive: #f87171;
-    --border: #3a3233;
-    --input: #7a6d6e;
-    --ring: #ef8a8d;
-    --sunday: #ff6b70;
-  }
+/* color-scheme also switches native controls (date pickers, select menus, scrollbars). */
+.dark {
+  color-scheme: dark;
+  --background: #181314;
+  --foreground: #f2eded;
+  --card: #221b1c;
+  --card-foreground: #f2eded;
+  --popover: #221b1c;
+  --popover-foreground: #f2eded;
+  --primary: #ef8a8d;
+  --primary-foreground: #2a0a0b;
+  --secondary: #2a2223;
+  --secondary-foreground: #f2eded;
+  --muted: #2a2223;
+  --muted-foreground: #b8aeaf;
+  --accent: #3a1e20;
+  --accent-foreground: #f5c6c8;
+  --destructive: #f87171;
+  --border: #3a3233;
+  --input: #7a6d6e;
+  --ring: #ef8a8d;
+  --sunday: #ff6b70;
 }
 
 @theme inline {
