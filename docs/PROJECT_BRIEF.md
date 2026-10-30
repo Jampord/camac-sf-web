@@ -93,7 +93,12 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 ### 6.2 Public calendar & event pages
 
 - No login. Mobile-first, readable for older members (large text, high contrast, simple navigation).
-- **Agenda list** (no month grid in the MVP): grouped by month, large dates, one event per row, showing **at least 3 months ahead**. Ministry filter as large chips at the top.
+- **Agenda list** (no month grid in the MVP), large dates, one event per row, in three parts:
+  - **This week** (next 7 days): everything, weekly services as one compact line each. What's on right now is a filled maroon row ("Happening now, until 12:00 PM"); anything starting within 3 hours says so ("Starts in 2 hours").
+  - **Every week:** each weekly service once with its pattern, plus skipped weeks **at least 3 months ahead** ("Not on Sun, Nov 22").
+  - **By month:** special (one-off) events only, so they aren't buried under weekly services.
+- **Ministry filter:** one dropdown (the phone's own picker), not chips: chips filled the first screen. Church-wide events show under every filter.
+- **Loading:** pages stream behind calendar-shaped placeholders; a tapped row or link shows a spinner if its page is slow; busy buttons show a spinner.
 - Shows **from today forward**; a **"Past events"** list is one tap away (future home of the Phase 3 Facebook photos link).
 - Event page: details, poster (if any), contact person, attire, Share / Copy announcement, add-to-calendar, link to the printable QR page.
 - **After an event ends:** the page stays, with a **"This event has ended"** banner and no add-to-calendar button.
