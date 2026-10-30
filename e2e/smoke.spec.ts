@@ -19,4 +19,17 @@ for (const path of [
     await expect(page).toHaveURL(/\/admin\/sign-in/);
     await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
   });
+
+  // The redirect must happen before any admin HTML is sent, or the admin nav flashes
+  // on screen first (src/proxy.ts).
+  test(`${path} sends signed-out visitors no admin HTML`, async ({ request }) => {
+    const response = await request.get(path, { maxRedirects: 0 });
+    expect(response.status()).toBe(307);
+    expect(response.headers().location).toMatch(/\/admin\/sign-in$/);
+  });
 }
+
+test("the sign-in page itself is not redirected", async ({ request }) => {
+  const response = await request.get("/admin/sign-in", { maxRedirects: 0 });
+  expect(response.status()).toBe(200);
+});
