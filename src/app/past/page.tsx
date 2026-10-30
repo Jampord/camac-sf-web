@@ -4,7 +4,9 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { ChevronLeftIcon } from "lucide-react";
 import { DateBlock } from "@/components/date-block";
+import { InlinePending, RowPending } from "@/components/link-pending";
 import { SiteHeader } from "@/components/site-header";
+import { EventListSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import {
   eventDays,
@@ -37,12 +39,13 @@ export default function PastEventsPage() {
         >
           <ChevronLeftIcon className="size-5" aria-hidden />
           Upcoming events
+          <InlinePending />
         </Link>
         <div className="flex flex-col gap-2">
           <h1 className="font-heading text-4xl font-bold tracking-tight">Past events</h1>
           <p className="text-muted-foreground">From the last {MONTHS_BACK} months, newest first.</p>
         </div>
-        <Suspense fallback={<p className="text-muted-foreground">Loading events…</p>}>
+        <Suspense fallback={<EventListSkeleton />}>
           <PastList />
         </Suspense>
       </main>
@@ -98,7 +101,7 @@ function PastRow({ event }: { event: PublicEvent }) {
     <li>
       <Link
         href={`/events/${event.slug}`}
-        className="-mx-2 flex gap-4 rounded-lg px-2 py-4 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="relative -mx-2 flex gap-4 rounded-lg px-2 py-4 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <DateBlock date={event.startsAt} />
         <div className="flex min-w-0 flex-col gap-1 pt-0.5">
@@ -120,6 +123,7 @@ function PastRow({ event }: { event: PublicEvent }) {
           <p className="text-muted-foreground">{event.venue}</p>
           <p className="text-muted-foreground">{event.ministry?.name ?? "Church-wide"}</p>
         </div>
+        <RowPending />
       </Link>
     </li>
   );

@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { restoreEvent } from "./actions";
 
@@ -21,6 +22,7 @@ export function RestoreButton({ id, title }: { id: string; title: string }) {
         })
       }
     >
+      {pending && <Spinner />}
       Restore
     </Button>
   );

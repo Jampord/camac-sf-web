@@ -16,20 +16,18 @@ test("past events are one tap from the agenda", async ({ page }) => {
 });
 
 // Works with or without events in the database (CI starts empty, dev has data).
-test("ministry chips filter the agenda through the URL", async ({ page }) => {
+test("the ministry dropdown filters the agenda through the URL", async ({ page }) => {
   await page.goto("/");
-  const filter = page.getByRole("navigation", { name: "Filter by ministry" });
-  await expect(filter.getByRole("link", { name: "All events" })).toHaveAttribute(
-    "aria-current",
-    "true",
-  );
+  const filter = page.getByLabel("Ministry");
+  await expect(filter).toHaveValue("");
 
-  await filter.getByRole("link", { name: "Youth", exact: true }).click();
+  await filter.selectOption({ label: "Youth" });
   await expect(page).toHaveURL(/\/\?ministry=youth$/);
-  await expect(filter.getByRole("link", { name: "Youth", exact: true })).toHaveAttribute(
-    "aria-current",
-    "true",
-  );
+  await expect(filter).toHaveValue("youth");
+
+  // A shared filtered link opens with that ministry already chosen.
+  await page.goto("/?ministry=youth");
+  await expect(page.getByLabel("Ministry")).toHaveValue("youth");
 });
 
 // Drafts, deleted events and wrong links show the not-found page and are kept out of search

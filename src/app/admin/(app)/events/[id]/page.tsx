@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DateBlock } from "@/components/date-block";
 import { EventStatusBadge } from "@/components/event-status-badge";
+import { FormSkeleton } from "@/components/skeletons";
 import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { formatStatCounts, totalsByEvent } from "@/lib/events/stats";
@@ -22,7 +23,7 @@ export default function EditEventPage({ params }: PageProps<"/admin/events/[id]"
   // params is request data, so it's read inside the boundary; the layout around it still
   // prerenders (Next 16 Cache Components).
   return (
-    <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
+    <Suspense fallback={<FormSkeleton label="Loading event" />}>
       {params.then(({ id }) => (
         <EditEvent id={id} />
       ))}

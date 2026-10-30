@@ -2,7 +2,9 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { signOut } from "@/auth";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { EventListSkeleton } from "@/components/skeletons";
+import { SubmitButton } from "@/components/submit-button";
+import { buttonVariants } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { nextOccurrence } from "@/lib/events/recurrence";
@@ -21,7 +23,7 @@ export default function AdminPage() {
           New event
         </Link>
       </div>
-      <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
+      <Suspense fallback={<EventListSkeleton />}>
         <AdminHome />
       </Suspense>
     </>
@@ -103,9 +105,7 @@ async function AdminHome() {
             await signOut({ redirectTo: "/" });
           }}
         >
-          <Button type="submit" variant="outline">
-            Sign out
-          </Button>
+          <SubmitButton variant="outline">Sign out</SubmitButton>
         </form>
       </footer>
     </>

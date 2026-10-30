@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,8 +30,12 @@ const STALE = "This event was changed somewhere else. Reload the page to see the
 export function EventActions({ id, status }: { id: string; status: EventStatus }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  // Which button is working, so its spinner shows while the others just wait.
+  const [running, setRunning] = useState<string | null>(null);
+  const busy = (key: string) => pending && running === key;
 
-  function run(action: () => Promise<{ changed: boolean }>, done: string) {
+  function run(key: string, action: () => Promise<{ changed: boolean }>, done: string) {
+    setRunning(key);
     startTransition(async () => {
       const { changed } = await action();
       if (changed) toast.success(done);
@@ -39,6 +44,7 @@ export function EventActions({ id, status }: { id: string; status: EventStatus }
   }
 
   function remove() {
+    setRunning("delete");
     startTransition(async () => {
       const { changed } = await deleteEvent(id);
       if (!changed) return void toast.error(STALE);
@@ -59,7 +65,8 @@ export function EventActions({ id, status }: { id: string; status: EventStatus }
   return (
     <section aria-label="Event status" className="flex flex-wrap items-center gap-3 border-y py-4">
       {status === "draft" && (
-        <Button disabled={pending} onClick={() => run(() => publishEvent(id), "Published")}>
+        <Button disabled={pending} onClick={() => run("publish", () => publishEvent(id), "Published")}>
+          {busy("publish") && <Spinner />}
           Publish
         </Button>
       )}
@@ -67,7 +74,8 @@ export function EventActions({ id, status }: { id: string; status: EventStatus }
       {status === "published" && (
         <CancelDialog
           disabled={pending}
-          onConfirm={(note) => run(() => cancelEvent(id, note), "Event cancelled")}
+          busy={busy("cancel")}
+          onConfirm={(note) => run("cancel", () => cancelEvent(id, note), "Event cancelled")}
         />
       )}
 
@@ -75,13 +83,15 @@ export function EventActions({ id, status }: { id: string; status: EventStatus }
         <Button
           variant="outline"
           disabled={pending}
-          onClick={() => run(() => uncancelEvent(id), "Cancellation undone")}
+          onClick={() => run("uncancel", () => uncancelEvent(id), "Cancellation undone")}
         >
+          {busy("uncancel") && <Spinner />}
           Undo cancellation
         </Button>
       )}
 
       <Button variant="destructive" disabled={pending} onClick={remove} className="ml-auto">
+        {busy("delete") && <Spinner />}
         Delete
       </Button>
 
@@ -96,9 +106,11 @@ export function EventActions({ id, status }: { id: string; status: EventStatus }
 
 function CancelDialog({
   disabled,
+  busy,
   onConfirm,
 }: {
   disabled: boolean;
+  busy: boolean;
   onConfirm: (note: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -107,6 +119,7 @@ function CancelDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="outline" disabled={disabled} />}>
+        {busy && <Spinner />}
         Cancel event
       </DialogTrigger>
       <DialogContent>
