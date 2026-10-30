@@ -142,7 +142,8 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 ### 6.5 Add to calendar
 
 - "Add to Google Calendar" link + downloadable `.ics` file per event.
-- **Recurring events add the whole series** (weekly rule, skip dates excluded) in both the `.ics` and the Google link.
+- **Recurring events add the whole series** from the next date (not past weeks) in both the `.ics` and the Google link. Skip dates are excluded in the `.ics` (`EXDATE`); Google's add-event link only documents `RRULE`, so its series includes skipped weeks (the event page still lists them as "Not on …").
+- Hidden once the event has ended or is cancelled. The `.ics` UID is the slug, so re-adding updates the event instead of duplicating it.
 
 ### 6.6 QR codes
 
