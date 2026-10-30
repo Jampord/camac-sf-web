@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatLongDates, formatTimes } from "@/lib/events/format";
 import { posterImageUrl } from "@/lib/cloudinary";
 import { getPublishedEventBySlug } from "@/lib/events/public";
+import { SHARE_CARD_SIZE, shareCardPath } from "@/lib/events/share-card";
 import {
   describeRepeat,
   nextOccurrence,
@@ -39,13 +40,26 @@ async function findEvent(slug: string) {
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
   const event = await findEvent((await params).slug);
   if (!event) return {};
+  const title = event.cancelledAt ? `Cancelled: ${event.title}` : event.title;
+  // Weekly events never name a specific date: link previews are cached (brief §6.3).
+  const description =
+    event.recurrence === "WEEKLY"
+      ? `${describeRepeat(event)}, ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`
+      : `${formatLongDates(event.startsAt, event.endsAt)}. ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`;
   return {
-    title: event.cancelledAt ? `Cancelled: ${event.title}` : event.title,
-    // Weekly events never name a specific date: link previews are cached (brief §6.3).
-    description:
-      event.recurrence === "WEEKLY"
-        ? `${describeRepeat(event)}, ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`
-        : `${formatLongDates(event.startsAt, event.endsAt)}. ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`,
+    title,
+    description,
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: `/events/${event.slug}`,
+      // Relative URLs are made absolute by Next: the production domain on Vercel.
+      images: [
+        { url: shareCardPath(event.slug, event.updatedAt), ...SHARE_CARD_SIZE, alt: title },
+      ],
+    },
+    twitter: { card: "summary_large_image" },
   };
 }
 
