@@ -2,7 +2,8 @@ import { z } from "zod";
 import { isManilaInput, manilaInputToUtc } from "@/lib/time";
 
 // Validates the admin event form (brief §6.1). Date/time inputs are Manila wall-clock values.
-// Poster, all-day and recurrence fields arrive in build step 2.
+// All-day events send dates only ("2027-04-10") and run from midnight on the first day to
+// 11:59 PM on the last, so "upcoming" and "ended" work the same as for timed events.
 
 const requiredText = (label: string, max: number) =>
   z
@@ -18,26 +19,25 @@ const optionalText = (label: string, max: number) =>
     .max(max, `${label} must be ${max} characters or fewer.`)
     .transform((value) => value || null);
 
-const manilaDateTime = (label: string) =>
-  z
-    .string()
-    .trim()
-    .min(1, `${label} is required.`)
-    .refine(isManilaInput, `Enter a valid ${label.toLowerCase()}.`)
-    .transform(manilaInputToUtc);
+// An unticked checkbox is simply missing from FormData.
+const checkbox = z
+  .string()
+  .optional()
+  .transform((value) => value === "on");
+
+// Dates stay raw strings until we know whether the event is all-day (see below).
+const DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+const dateOnly = (value: string) => value.slice(0, 10); // "2027-04-10T09:00" -> "2027-04-10"
 
 export const eventInputSchema = z
   .object({
     title: requiredText("Title", 120),
     description: optionalText("Description", 5000),
-    startsAt: manilaDateTime("Start date and time"),
-    endsAt: manilaDateTime("End date and time"),
+    startsAt: z.string().trim().min(1, "Start is required."),
+    endsAt: z.string().trim().min(1, "End is required."),
+    allDay: checkbox,
     venue: requiredText("Venue", 200),
-    // An unticked checkbox is simply missing from FormData.
-    atChurchVenue: z
-      .string()
-      .optional()
-      .transform((value) => value === "on"),
+    atChurchVenue: checkbox,
     ministryId: z
       .string()
       .trim()
@@ -45,9 +45,33 @@ export const eventInputSchema = z
     contactPerson: optionalText("Contact person", 120),
     attire: optionalText("Attire", 120),
   })
-  .refine((event) => event.endsAt >= event.startsAt, {
-    path: ["endsAt"],
-    message: "The end must be after the start.",
+  .superRefine((event, ctx) => {
+    for (const field of ["startsAt", "endsAt"] as const) {
+      const value = event[field];
+      const valid = event.allDay
+        ? isManilaInput(dateOnly(value))
+        : DATE_TIME.test(value) && isManilaInput(value);
+      if (!valid) {
+        const message = event.allDay ? "Enter a valid date." : "Enter a valid date and time.";
+        ctx.addIssue({ code: "custom", path: [field], message });
+      }
+    }
+  })
+  .transform((event) => ({
+    ...event,
+    startsAt: manilaInputToUtc(event.allDay ? dateOnly(event.startsAt) : event.startsAt),
+    endsAt: manilaInputToUtc(event.allDay ? `${dateOnly(event.endsAt)}T23:59` : event.endsAt),
+  }))
+  .superRefine((event, ctx) => {
+    if (event.endsAt < event.startsAt) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["endsAt"],
+        message: event.allDay
+          ? "The end date must be on or after the start date."
+          : "The end must be after the start.",
+      });
+    }
   });
 
 export type EventInput = z.output<typeof eventInputSchema>;
@@ -58,6 +82,7 @@ const EVENT_FIELDS = [
   "description",
   "startsAt",
   "endsAt",
+  "allDay",
   "venue",
   "atChurchVenue",
   "ministryId",

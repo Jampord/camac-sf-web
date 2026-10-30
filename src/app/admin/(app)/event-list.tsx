@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { DateBlock } from "@/components/date-block";
 import { EventStatusBadge } from "@/components/event-status-badge";
-import { formatTimeRange, groupByMonth, isSameManilaDay } from "@/lib/events/format";
+import {
+  eventDays,
+  formatShortDateRange,
+  formatTimes,
+  groupByMonth,
+  isSameManilaDay,
+} from "@/lib/events/format";
 import { eventStatus } from "@/lib/events/status";
 import { slugify } from "@/lib/slug";
 import { cn } from "@/lib/utils";
@@ -11,6 +17,7 @@ export type ListedEvent = {
   title: string;
   startsAt: Date;
   endsAt: Date;
+  allDay: boolean;
   venue: string;
   publishedAt: Date | null;
   cancelledAt: Date | null;
@@ -58,7 +65,11 @@ function EventRow({ event, today }: { event: ListedEvent; today: boolean }) {
             </h3>
             <EventStatusBadge status={status} />
           </div>
-          <p className="text-sm">{formatTimeRange(event.startsAt, event.endsAt)}</p>
+          {/* Admins see each event once; multi-day ones show their date range. */}
+          {eventDays(event.startsAt, event.endsAt).length > 1 && (
+            <p className="text-sm font-medium">{formatShortDateRange(event.startsAt, event.endsAt)}</p>
+          )}
+          <p className="text-sm">{formatTimes(event.startsAt, event.endsAt, event.allDay)}</p>
           <p className="text-sm text-muted-foreground">{event.venue}</p>
           <p className="text-sm text-muted-foreground">{event.ministry?.name ?? "Church-wide"}</p>
         </div>

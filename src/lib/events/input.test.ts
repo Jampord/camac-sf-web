@@ -27,6 +27,7 @@ describe("parseEventForm", () => {
         description: null,
         startsAt: new Date("2027-04-10T01:00:00Z"),
         endsAt: new Date("2027-04-12T07:00:00Z"),
+        allDay: false,
         venue: "Camp Resort, La Union",
         atChurchVenue: false,
         ministryId: null,
@@ -68,5 +69,42 @@ describe("parseEventForm", () => {
     expect(result.success).toBe(false);
     if (result.success) return;
     expect(result.errors.startsAt).toMatch(/valid/);
+  });
+
+  describe("all-day events", () => {
+    const allDay = { ...valid, allDay: "on", startsAt: "2027-04-10", endsAt: "2027-04-12" };
+
+    it("runs from Manila midnight on the first day to 11:59 PM on the last", () => {
+      const result = parseEventForm(form(allDay));
+      expect(result.success && result.data).toMatchObject({
+        allDay: true,
+        startsAt: new Date("2027-04-09T16:00:00Z"), // Apr 10, 12:00 AM Manila
+        endsAt: new Date("2027-04-12T15:59:00Z"), // Apr 12, 11:59 PM Manila
+      });
+    });
+
+    it("allows a single day (same start and end date)", () => {
+      const result = parseEventForm(form({ ...allDay, endsAt: "2027-04-10" }));
+      expect(result.success).toBe(true);
+    });
+
+    it("uses only the date part if a time was sent anyway", () => {
+      const result = parseEventForm(form({ ...allDay, startsAt: "2027-04-10T09:00" }));
+      expect(result.success && result.data.startsAt).toEqual(new Date("2027-04-09T16:00:00Z"));
+    });
+
+    it("rejects an end date before the start date", () => {
+      const result = parseEventForm(form({ ...allDay, endsAt: "2027-04-09" }));
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.errors).toEqual({ endsAt: "The end date must be on or after the start date." });
+    });
+
+    it("rejects malformed dates", () => {
+      const result = parseEventForm(form({ ...allDay, endsAt: "Sunday" }));
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.errors.endsAt).toBe("Enter a valid date.");
+    });
   });
 });

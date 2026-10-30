@@ -83,8 +83,10 @@ async function EditEvent({ id }: { id: string }) {
         defaults={{
           title: event.title,
           description: event.description ?? "",
-          startsAt: utcToManilaInput(event.startsAt),
-          endsAt: utcToManilaInput(event.endsAt),
+          // All-day events use date-only pickers, so only the date part is filled in.
+          startsAt: utcToManilaInput(event.startsAt).slice(0, event.allDay ? 10 : 16),
+          endsAt: utcToManilaInput(event.endsAt).slice(0, event.allDay ? 10 : 16),
+          allDay: event.allDay ? "on" : "",
           venue: event.venue,
           atChurchVenue: event.atChurchVenue ? "on" : "",
           ministryId: event.ministryId ?? "",

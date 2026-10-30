@@ -3,13 +3,24 @@ import { connection } from "next/server";
 import { DateBlock } from "@/components/date-block";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { formatTimeRange, groupByMonth, isSameManilaDay } from "@/lib/events/format";
+import {
+  eventDays,
+  formatDayTimes,
+  groupByMonth,
+  isSameManilaDay,
+  type EventDay,
+} from "@/lib/events/format";
 import { getMinistries, getPublishedEvents, type PublicEvent } from "@/lib/events/public";
 import { slugify } from "@/lib/slug";
+import { manilaMidnight } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
 // The public agenda (brief §6.2): upcoming events by month, with ministry filter chips.
-// Church-wide events (no ministry) show under every filter.
+// Church-wide events (no ministry) show under every filter. Multi-day events appear on every
+// day they span, labeled "Day 1 of 3" (brief §6.1).
+
+/** One row of the agenda: an event on one of its days. */
+type AgendaEntry = { event: PublicEvent; day: EventDay };
 
 export async function Agenda({ ministry }: { ministry?: string }) {
   // The event list comes from the cache; "upcoming" is decided per request, against now.
@@ -18,22 +29,36 @@ export async function Agenda({ ministry }: { ministry?: string }) {
   const now = new Date();
 
   const selected = ministries.find((m) => slugify(m.name) === ministry);
-  const upcoming = events.filter(
-    (event) =>
-      event.endsAt >= now &&
-      (!selected || event.ministryId === null || event.ministryId === selected.id),
-  );
+  const today = manilaMidnight(now);
+  const entries: AgendaEntry[] = events
+    .filter(
+      (event) =>
+        event.endsAt >= now &&
+        (!selected || event.ministryId === null || event.ministryId === selected.id),
+    )
+    // A retreat that already started shows from today's day onwards.
+    .flatMap((event) =>
+      eventDays(event.startsAt, event.endsAt)
+        .filter((day) => day.date >= today)
+        .map((day) => ({ event, day })),
+    )
+    .sort((a, b) => entryTime(a) - entryTime(b));
 
   return (
     <>
       <MinistryFilter ministries={ministries} selectedId={selected?.id} />
-      {upcoming.length > 0 ? (
-        <AgendaList events={upcoming} now={now} />
+      {entries.length > 0 ? (
+        <AgendaList entries={entries} now={now} />
       ) : (
         <EmptyAgenda ministryName={selected?.name} />
       )}
     </>
   );
+}
+
+/** Order within a day: ongoing multi-day events (from midnight) first, then by start time. */
+function entryTime({ event, day }: AgendaEntry): number {
+  return day.index === 1 ? event.startsAt.getTime() : day.date.getTime();
 }
 
 function MinistryFilter({
@@ -80,10 +105,10 @@ function MinistryFilter({
   );
 }
 
-function AgendaList({ events, now }: { events: PublicEvent[]; now: Date }) {
+function AgendaList({ entries, now }: { entries: AgendaEntry[]; now: Date }) {
   return (
     <div className="flex flex-col gap-6">
-      {groupByMonth(events, (event) => event.startsAt).map(([month, monthEvents]) => (
+      {groupByMonth(entries, (entry) => entry.day.date).map(([month, monthEntries]) => (
         <section key={month} aria-labelledby={`month-${slugify(month)}`}>
           {/* Stays pinned while you scroll that month, so you always know where you are. */}
           <h2
@@ -93,8 +118,13 @@ function AgendaList({ events, now }: { events: PublicEvent[]; now: Date }) {
             {month}
           </h2>
           <ul className="flex flex-col divide-y border-y">
-            {monthEvents.map((event) => (
-              <AgendaRow key={event.id} event={event} today={isSameManilaDay(event.startsAt, now)} />
+            {monthEntries.map(({ event, day }) => (
+              <AgendaRow
+                key={`${event.id}-${day.index}`}
+                event={event}
+                day={day}
+                today={isSameManilaDay(day.date, now)}
+              />
             ))}
           </ul>
         </section>
@@ -103,7 +133,7 @@ function AgendaList({ events, now }: { events: PublicEvent[]; now: Date }) {
   );
 }
 
-function AgendaRow({ event, today }: { event: PublicEvent; today: boolean }) {
+function AgendaRow({ event, day, today }: { event: PublicEvent; day: EventDay; today: boolean }) {
   const cancelled = event.cancelledAt !== null;
 
   // The whole row is the link: a big tap target, and the title is its accessible name.
@@ -113,7 +143,7 @@ function AgendaRow({ event, today }: { event: PublicEvent; today: boolean }) {
         href={`/events/${event.slug}`}
         className="-mx-2 flex gap-4 rounded-lg px-2 py-4 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
       >
-        <DateBlock date={event.startsAt} today={today} />
+        <DateBlock date={day.date} today={today} />
         <div className="flex min-w-0 flex-col gap-1 pt-0.5">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <h3
@@ -126,8 +156,13 @@ function AgendaRow({ event, today }: { event: PublicEvent; today: boolean }) {
             </h3>
             {cancelled && <Badge variant="destructive">Cancelled</Badge>}
           </div>
+          {day.total > 1 && (
+            <p className="font-semibold text-primary">
+              Day {day.index} of {day.total}
+            </p>
+          )}
           {cancelled && event.cancelNote && <p className="font-medium">{event.cancelNote}</p>}
-          <p>{formatTimeRange(event.startsAt, event.endsAt)}</p>
+          <p>{formatDayTimes(event, day)}</p>
           <p className="flex flex-wrap items-center gap-2 text-muted-foreground">
             {event.venue}
             {event.atChurchVenue && (
