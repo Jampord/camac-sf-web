@@ -3,14 +3,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { ChevronLeftIcon, QrCodeIcon } from "lucide-react";
+import { ChevronLeftIcon, MapPinIcon, QrCodeIcon } from "lucide-react";
 import { DateBlock } from "@/components/date-block";
 import { InlinePending } from "@/components/link-pending";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { formatLongDates, formatTimes } from "@/lib/events/format";
 import { posterImageUrl } from "@/lib/cloudinary";
-import { getPublishedEventBySlug } from "@/lib/events/public";
+import { eventAddress, fullLocation, mapsUrl } from "@/lib/events/address";
+import { getChurchAddress, getPublishedEventBySlug } from "@/lib/events/public";
 import { SHARE_CARD_SIZE, shareCardPath } from "@/lib/events/share-card";
 import {
   describeRepeat,
@@ -70,6 +71,9 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
   const event = await findEvent((await params).slug);
   if (!event) notFound();
   const cancelled = event.cancelledAt !== null;
+  const address = eventAddress(event, await getChurchAddress());
+  // Calendars and the copied announcement get the venue with its address, so Maps finds it.
+  const location = fullLocation(event.venue, address);
   const weekly = event.recurrence === "WEEKLY";
 
   return (
@@ -150,6 +154,20 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
                 <Badge className="bg-accent text-accent-foreground">At the church</Badge>
               )}
             </span>
+            {address && (
+              <>
+                <span className="block text-muted-foreground">{address}</span>
+                <a
+                  href={mapsUrl(address)}
+                  target="_blank"
+                  rel="noopener"
+                  className="mt-1 flex w-fit items-center gap-1.5 rounded-md py-1 font-medium underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <MapPinIcon className="size-5" aria-hidden />
+                  Open in Google Maps
+                </a>
+              </>
+            )}
           </Detail>
           <Detail label="Ministry">{event.ministry?.name ?? "Church-wide"}</Detail>
           {event.attire && <Detail label="Attire">{event.attire}</Detail>}
@@ -162,7 +180,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
         )}
 
         <Suspense>
-          <AddToCalendar event={event} slug={event.slug} />
+          <AddToCalendar event={{ ...event, venue: location }} slug={event.slug} />
         </Suspense>
 
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -176,7 +194,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
                 startsAt: event.startsAt,
                 endsAt: event.endsAt,
                 allDay: event.allDay,
-                venue: event.venue,
+                venue: location,
                 attire: event.attire,
                 contactPerson: event.contactPerson,
                 recurrence: event.recurrence,

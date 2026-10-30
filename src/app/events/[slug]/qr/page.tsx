@@ -8,7 +8,8 @@ import { ChevronLeftIcon, DownloadIcon } from "lucide-react";
 import { InlinePending } from "@/components/link-pending";
 import { buttonVariants } from "@/components/ui/button";
 import { formatLongDates, formatTimes } from "@/lib/events/format";
-import { getPublishedEventBySlug } from "@/lib/events/public";
+import { eventAddress } from "@/lib/events/address";
+import { getChurchAddress, getPublishedEventBySlug } from "@/lib/events/public";
 import { describeRepeat } from "@/lib/events/recurrence";
 import { qrSvg, shortUrl } from "@/lib/qr";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,7 @@ async function QrSheet({ slug }: { slug: string }) {
   const url = `${origin}/events/${slug}`;
   const svg = await qrSvg(url);
   const cancelled = event.cancelledAt !== null;
+  const address = eventAddress(event, await getChurchAddress());
   const when =
     event.recurrence === "WEEKLY" ? describeRepeat(event) : formatLongDates(event.startsAt, event.endsAt);
 
@@ -120,6 +122,7 @@ async function QrSheet({ slug }: { slug: string }) {
           <p className="text-[4.2cqw]">
             {formatTimes(event.startsAt, event.endsAt, event.allDay)}, {event.venue}
           </p>
+          {address && <p className="text-[3.6cqw] text-[#5f5f5f]">{address}</p>}
         </div>
 
         {/* Generated here from our own URL, not user input. */}

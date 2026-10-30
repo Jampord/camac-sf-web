@@ -152,6 +152,7 @@ async function EditEvent({ id }: { id: string }) {
             : "",
           venue: event.venue,
           atChurchVenue: event.atChurchVenue ? "on" : "",
+          venueAddress: event.venueAddress ?? "",
           ministryId: event.ministryId ?? "",
           contactPerson: event.contactPerson ?? "",
           attire: event.attire ?? "",

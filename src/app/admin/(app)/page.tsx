@@ -9,6 +9,7 @@ import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { nextOccurrence } from "@/lib/events/recurrence";
 import { totalsByEvent } from "@/lib/events/stats";
+import { ChurchAddress } from "./church-address";
 import { EventList } from "./event-list";
 import { MetricPanel } from "./metric-panel";
 
@@ -93,6 +94,8 @@ async function AdminHome() {
           </div>
         </details>
       )}
+
+      <ChurchAddress />
 
       <footer className="mt-auto flex flex-wrap items-center gap-4 border-t pt-6 text-sm">
         <span>

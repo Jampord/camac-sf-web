@@ -45,6 +45,13 @@ export const eventInputSchema = z
     recurrenceUntil: z.string().trim().optional(),
     venue: requiredText("Venue", 200),
     atChurchVenue: checkbox,
+    // Optional: church events fall back to the church address setting. Older forms may not send it.
+    venueAddress: z
+      .string()
+      .trim()
+      .max(300, "Address must be 300 characters or fewer.")
+      .optional()
+      .transform((value) => value || null),
     ministryId: z
       .string()
       .trim()
@@ -133,6 +140,7 @@ const EVENT_FIELDS = [
   "recurrenceUntil",
   "venue",
   "atChurchVenue",
+  "venueAddress",
   "ministryId",
   "contactPerson",
   "attire",

@@ -32,6 +32,7 @@ describe("parseEventForm", () => {
         recurrenceUntil: null,
         venue: "Camp Resort, La Union",
         atChurchVenue: false,
+        venueAddress: null,
         ministryId: null,
         contactPerson: "Ate Joy 0917 000 0000",
         attire: null,

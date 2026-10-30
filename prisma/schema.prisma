@@ -57,6 +57,7 @@ model Event {
   allDay          Boolean     @default(false)
   venue           String // free text: church, home, outreach, resort
   atChurchVenue   Boolean     @default(false)
+  venueAddress    String? // for a Maps link; church events use the church address setting
   contactPerson   String?
   attire          String?
   posterUrl       String? // Cloudinary

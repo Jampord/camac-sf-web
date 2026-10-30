@@ -1,5 +1,6 @@
 import { icsFile } from "@/lib/events/calendar";
-import { getPublishedEventBySlug } from "@/lib/events/public";
+import { eventAddress, fullLocation } from "@/lib/events/address";
+import { getChurchAddress, getPublishedEventBySlug } from "@/lib/events/public";
 
 // The .ics download behind "Add to Apple or other calendar" (brief §6.5). On an iPhone, Safari
 // opens it straight into "Add to Calendar"; on Android it opens in the calendar app.
@@ -10,7 +11,9 @@ export async function GET(request: Request, ctx: RouteContext<"/events/[slug]/ca
   if (!event) return new Response("Not found", { status: 404 });
 
   const now = new Date();
-  const ics = icsFile(event, `${new URL(request.url).origin}/events/${slug}`, now);
+  // The venue with its address, so the calendar app can map it.
+  const venue = fullLocation(event.venue, eventAddress(event, await getChurchAddress()));
+  const ics = icsFile({ ...event, venue }, `${new URL(request.url).origin}/events/${slug}`, now);
   if (!ics) return new Response("This event has ended.", { status: 410 });
 
   return new Response(ics, {
