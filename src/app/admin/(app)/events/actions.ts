@@ -3,11 +3,13 @@
 import { refresh, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@/generated/prisma/client";
+import { isPosterUrl, signCloudinaryParams } from "@/lib/cloudinary";
 import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { EVENTS_TAG } from "@/lib/events/public";
 import { parseEventForm, type EventFormState, type EventInput } from "@/lib/events/input";
 import { occurrences } from "@/lib/events/recurrence";
+import { POSTER_FOLDER, POSTER_FORMATS, POSTER_MAX_BYTES } from "@/lib/poster-limits";
 import { slugBase, uniqueSlug } from "@/lib/slug";
 import { manilaMidnight } from "@/lib/time";
 
@@ -153,17 +155,73 @@ async function validate(formData: FormData): Promise<Validated> {
     return { ok: false, state: { errors: parsed.errors, values: parsed.values } };
   }
 
-  const { ministryId } = parsed.data;
+  const fail = (errors: EventFormState["errors"]): Validated => ({
+    ok: false,
+    state: { errors, values: Object.fromEntries(formData) as EventFormState["values"] },
+  });
+
+  const { ministryId, posterUrl } = parsed.data;
   if (ministryId && !(await db.ministry.findUnique({ where: { id: ministryId } }))) {
-    return {
-      ok: false,
-      state: {
-        errors: { ministryId: "Pick a ministry from the list." },
-        values: Object.fromEntries(formData) as EventFormState["values"],
-      },
-    };
+    return fail({ ministryId: "Pick a ministry from the list." });
+  }
+  if (posterUrl) {
+    const problem = await checkPoster(posterUrl);
+    if (problem) return fail({ posterUrl: problem });
   }
   return { ok: true, data: parsed.data };
+}
+
+/** Only our own Cloudinary uploads, and the size is re-checked here (brief §5: ~5 MB). */
+async function checkPoster(url: string): Promise<string | null> {
+  if (!isPosterUrl(url, cloudinaryConfig().cloudName)) {
+    return "The poster didn't upload correctly. Choose the image again.";
+  }
+  const response = await fetch(url, { method: "HEAD" }).catch(() => null);
+  if (!response?.ok) return "The poster couldn't be found. Choose the image again.";
+  const bytes = Number(response.headers.get("content-length") ?? 0);
+  if (bytes > POSTER_MAX_BYTES) return "The poster is larger than 5 MB. Choose a smaller image.";
+  return null;
+}
+
+// --- Poster uploads (brief §5: admin-only, signed) ---
+
+export type PosterUploadSignature = {
+  cloudName: string;
+  apiKey: string;
+  timestamp: number;
+  folder: string;
+  allowedFormats: string;
+  signature: string;
+};
+
+/**
+ * Lets the admin's browser upload one poster straight to Cloudinary. Cloudinary rejects any
+ * upload without a valid signature (and signatures older than an hour), and only accepts the
+ * formats signed here. The API secret never leaves the server.
+ */
+export async function getPosterUploadSignature(): Promise<PosterUploadSignature> {
+  await requireAdmin();
+  const { cloudName, apiKey, apiSecret } = cloudinaryConfig();
+  const timestamp = Math.round(Date.now() / 1000);
+  const params = { timestamp, folder: POSTER_FOLDER, allowed_formats: POSTER_FORMATS };
+  return {
+    cloudName,
+    apiKey,
+    timestamp,
+    folder: POSTER_FOLDER,
+    allowedFormats: POSTER_FORMATS,
+    signature: signCloudinaryParams(params, apiSecret),
+  };
+}
+
+function cloudinaryConfig() {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new Error("Cloudinary isn't configured: set CLOUDINARY_* in the environment.");
+  }
+  return { cloudName, apiKey, apiSecret };
 }
 
 /** The slug is set once, here, and never changed (brief §6.1). */

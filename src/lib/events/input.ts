@@ -51,6 +51,13 @@ export const eventInputSchema = z
       .transform((value) => value || null), // "" = Church-wide
     contactPerson: optionalText("Contact person", 120),
     attire: optionalText("Attire", 120),
+    // Set by the poster uploader; that it's really our Cloudinary upload is checked in the action.
+    posterUrl: z
+      .string()
+      .trim()
+      .max(500)
+      .optional()
+      .transform((value) => value || null), // missing or "" = no poster
   })
   .superRefine((event, ctx) => {
     for (const field of ["startsAt", "endsAt"] as const) {
@@ -129,6 +136,7 @@ const EVENT_FIELDS = [
   "ministryId",
   "contactPerson",
   "attire",
+  "posterUrl",
 ] as const satisfies readonly EventField[];
 
 /** The raw strings from the form, used to refill it after a failed submit. */
