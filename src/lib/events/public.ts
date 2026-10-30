@@ -66,6 +66,7 @@ export async function getPublishedEventBySlug(slug: string) {
       posterUrl: true,
       cancelledAt: true,
       cancelNote: true,
+      updatedAt: true, // versions the share card URL
       ministry: { select: { name: true } },
     },
   });

@@ -108,7 +108,23 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
   - Recurring series → shows the pattern ("Every Sunday · 9:00 AM · Church"), never a specific next date (previews are cached).
   - Cancelled events → card shows "Cancelled".
 - **Stale previews:** the image URL is versioned by `updatedAt` (`?v=…`) so edits produce a new image. The admin edit page has a "Refresh preview" note linking to Facebook's Sharing Debugger for links already posted.
-- **"Copy announcement"** button: ready-to-paste text built from **the volunteer's current post format** (based on 2–3 of her recent posts; likely emoji-labeled lines — 📅 date, 🕓 time, 📍 venue, 👗 attire, 📞 contact — then description and link). Field labels in English; her Taglish content passes through unchanged.
+- **"Copy announcement"** button: ready-to-paste text built from **the volunteer's current post format** (decided from her recent posts: plain prose, no emoji; the poster normally carries venue and details, so the copied text adds them as plain labeled lines for Messenger, where there is no poster):
+
+  ```
+  Join us for {title} on {Sunday, August 30, 2026} at {9:00 AM}.
+
+  Venue: {venue}
+  Attire: {attire}            (only if set)
+  Contact: {contactPerson}    (only if set)
+
+  {description}
+
+  Details and add to calendar: {link}
+  ```
+
+  - All-day → no time ("on Sunday, August 30, 2026."). Weekly → the pattern ("every Wednesday at 6:30 PM."), never a specific date.
+  - The weekday is included even though her posts omit it (helps older members).
+  - Field labels in English; her Taglish description passes through unchanged.
 - **"Share"** button: opens the phone's system share sheet (Web Share API) where supported; "Copy announcement" is always shown alongside it.
 
 ### 6.4 Open counter
@@ -314,7 +330,7 @@ Facebook auto-posting via Graph API, RSVP, booking request/approval flow, venue 
 
 - [ ] Admin emails for the allowlist and the prayer-team members.
 - [ ] CAMAC - San Fernando **logo file and brand colors** (from the volunteer's Canva).
-- [ ] **2–3 recent announcement posts** from the volunteer, to base the copy-announcement template on.
+- [x] **2–3 recent announcement posts** from the volunteer, to base the copy-announcement template on.
 - [ ] Day, time and venue for **Sunday service, prayer meeting and Bible study** (seed data).
 - [ ] A dedicated Gmail account + app password for notifications.
 - [ ] Email Vercel support about the giving QR (needed before Phase 2, not before the MVP).

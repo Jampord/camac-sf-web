@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatLongDates, formatTimes } from "@/lib/events/format";
 import { posterImageUrl } from "@/lib/cloudinary";
 import { getPublishedEventBySlug } from "@/lib/events/public";
+import { SHARE_CARD_SIZE, shareCardPath } from "@/lib/events/share-card";
 import {
   describeRepeat,
   nextOccurrence,
@@ -17,6 +18,9 @@ import {
   type Series,
 } from "@/lib/events/recurrence";
 import { formatManila } from "@/lib/time";
+import { CopyAnnouncement } from "./copy-announcement";
+import { OpenBeacon } from "./open-beacon";
+import { ShareButton } from "./share-button";
 
 // Public event page (brief §6.2). Drafts, deleted events and wrong links are a real 404:
 // the event is looked up before anything streams, so Next can still send the 404 status.
@@ -37,13 +41,26 @@ async function findEvent(slug: string) {
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
   const event = await findEvent((await params).slug);
   if (!event) return {};
+  const title = event.cancelledAt ? `Cancelled: ${event.title}` : event.title;
+  // Weekly events never name a specific date: link previews are cached (brief §6.3).
+  const description =
+    event.recurrence === "WEEKLY"
+      ? `${describeRepeat(event)}, ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`
+      : `${formatLongDates(event.startsAt, event.endsAt)}. ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`;
   return {
-    title: event.cancelledAt ? `Cancelled: ${event.title}` : event.title,
-    // Weekly events never name a specific date: link previews are cached (brief §6.3).
-    description:
-      event.recurrence === "WEEKLY"
-        ? `${describeRepeat(event)}, ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`
-        : `${formatLongDates(event.startsAt, event.endsAt)}. ${formatTimes(event.startsAt, event.endsAt, event.allDay)} at ${event.venue}.`,
+    title,
+    description,
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: `/events/${event.slug}`,
+      // Relative URLs are made absolute by Next: the production domain on Vercel.
+      images: [
+        { url: shareCardPath(event.slug, event.updatedAt), ...SHARE_CARD_SIZE, alt: title },
+      ],
+    },
+    twitter: { card: "summary_large_image" },
   };
 }
 
@@ -55,6 +72,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
 
   return (
     <>
+      <OpenBeacon slug={event.slug} />
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-6">
         <Link
@@ -140,7 +158,28 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
           <p className="text-lg leading-relaxed whitespace-pre-line">{event.description}</p>
         )}
 
-        {/* Build steps 3-5: Share / Copy announcement, Add to calendar, printable QR. */}
+        <div className="flex flex-col gap-3 sm:flex-row">
+          {/* Nothing to announce once it's cancelled, but sharing the page still tells people. */}
+          {!cancelled && (
+            <CopyAnnouncement
+              slug={event.slug}
+              event={{
+                title: event.title,
+                description: event.description,
+                startsAt: event.startsAt,
+                endsAt: event.endsAt,
+                allDay: event.allDay,
+                venue: event.venue,
+                attire: event.attire,
+                contactPerson: event.contactPerson,
+                recurrence: event.recurrence,
+              }}
+            />
+          )}
+          <ShareButton title={event.title} slug={event.slug} />
+        </div>
+
+        {/* Build steps 4-5: Add to calendar, printable QR. */}
       </main>
     </>
   );

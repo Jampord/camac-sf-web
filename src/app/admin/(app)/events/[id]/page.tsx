@@ -1,11 +1,13 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DateBlock } from "@/components/date-block";
 import { EventStatusBadge } from "@/components/event-status-badge";
 import { requireAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
+import { formatStatCounts, totalsByEvent } from "@/lib/events/stats";
 import { eventStatus } from "@/lib/events/status";
 import { occurrences } from "@/lib/events/recurrence";
 import { formatManila, utcToManilaInput } from "@/lib/time";
@@ -31,12 +33,16 @@ export default function EditEventPage({ params }: PageProps<"/admin/events/[id]"
 async function EditEvent({ id }: { id: string }) {
   // Check access before touching the database.
   await requireAdmin();
-  const [event, ministries] = await Promise.all([
+  const [event, ministries, statRows] = await Promise.all([
     db.event.findFirst({ where: { id, deletedAt: null } }),
     db.ministry.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    db.eventStat.groupBy({ by: ["eventId", "type"], where: { eventId: id }, _count: true }),
   ]);
   if (!event) notFound();
   const status = eventStatus(event);
+  // The public address this request came in on (production, a preview, or localhost).
+  const requestHeaders = await headers();
+  const origin = `${requestHeaders.get("x-forwarded-proto") ?? "https"}://${requestHeaders.get("host")}`;
 
   // Weekly events: the next 8 weeks (skipped ones included) for Skip / Bring back.
   const now = new Date();
@@ -79,6 +85,27 @@ async function EditEvent({ id }: { id: string }) {
             <br />
             The link stays the same when you edit, so shared posts keep working.
           </p>
+          {status !== "draft" && (
+            <p className="text-sm font-medium">
+              {formatStatCounts(totalsByEvent(statRows).get(event.id) ?? { VIEW: 0, COPY: 0, SHARE: 0 })}
+            </p>
+          )}
+          {status !== "draft" && (
+            // Facebook and Messenger cache a link's preview; a new share card URL alone isn't
+            // picked up until Facebook re-reads the page (brief §6.3).
+            <p className="text-sm text-muted-foreground">
+              Already posted the link? After saving changes,{" "}
+              <a
+                href={`https://developers.facebook.com/tools/debug/?q=${encodeURIComponent(`${origin}/events/${event.slug}`)}`}
+                target="_blank"
+                rel="noopener"
+                className="text-foreground underline underline-offset-4"
+              >
+                refresh the preview on Facebook
+              </a>{" "}
+              and tap <span className="font-medium text-foreground">Scrape Again</span>.
+            </p>
+          )}
         </div>
       </div>
 
