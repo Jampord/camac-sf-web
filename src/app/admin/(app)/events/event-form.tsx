@@ -16,6 +16,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea";
 import type { EventField, EventFormState, EventFormValues } from "@/lib/events/input";
 import { POSTER_ACCEPT, POSTER_MAX_BYTES } from "@/lib/poster-limits";
+import { useHydrated } from "@/lib/use-hydrated";
 import { getPosterUploadSignature } from "./actions";
 
 type Props = {
@@ -27,6 +28,7 @@ type Props = {
 
 export function EventForm({ action, ministries, defaults = {}, submitLabel }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
+  const hydrated = useHydrated();
   // After a failed submit, show what the admin typed; otherwise the saved values.
   const value = (field: EventField) => state.values?.[field] ?? defaults[field] ?? "";
   const error = (field: EventField) => state.errors?.[field];
@@ -170,7 +172,7 @@ export function EventForm({ action, ministries, defaults = {}, submitLabel }: Pr
         <PosterField initial={value("posterUrl")} error={error("posterUrl")} />
 
         <div className="flex flex-wrap items-center gap-4">
-          <Button type="submit" size="lg" disabled={pending}>
+          <Button type="submit" size="lg" disabled={pending || !hydrated}>
             {pending && <Spinner />}
             {pending ? "Saving…" : submitLabel}
           </Button>

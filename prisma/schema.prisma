@@ -102,6 +102,16 @@ model PrayerRequest {
   createdAt       DateTime     @default(now())
 }
 
+model ServingAssignment {
+  id        String   @id @default(cuid())
+  date      DateTime // the Manila midnight of the service's date, like Event.skipDates
+  role      String // a key from src/lib/schedule/roles.ts
+  names     String // free text: not linked to accounts, and may hold several names
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, role])
+}
+
 model RateLimitHit {
   id        String   @id @default(cuid())
   ipHash    String
