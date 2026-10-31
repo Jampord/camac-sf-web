@@ -60,7 +60,7 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 - **Share images:** Next.js `ImageResponse` / `opengraph-image` routes
 - **QR codes:** a QR library (e.g. `qrcode`) rendered server-side
 - **Email (prayer notifications):** **Gmail SMTP with an app password from a dedicated Gmail account** (not a personal inbox). ⏰ **When the church gets a domain, switch to a proper transactional email provider with a verified domain.**
-- **Error tracking:** a free error-tracking tier on server routes (share card, view beacon, prayer form).
+- **Error tracking:** **Sentry** free tier, server only, on all server routes (including the share card, view beacon and prayer form). Reports never include headers, what someone typed or who they are (`src/lib/error-scrub.ts`).
 - **UI language:** English. Announcement content is written by admins in whatever language they use (often Taglish).
 - **Time zone:** store UTC, display in `Asia/Manila`. Admin date/time inputs are interpreted as Manila time.
 - **Accounts:** Vercel, Neon, Google OAuth client, Cloudinary and Gmail are under the builder's personal accounts.

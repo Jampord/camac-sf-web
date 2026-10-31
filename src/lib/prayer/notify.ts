@@ -1,4 +1,5 @@
 import "server-only";
+import * as Sentry from "@sentry/nextjs";
 import nodemailer from "nodemailer";
 import { db } from "@/lib/db";
 import { NOTIFICATION_SUBJECT, notificationText } from "./notification";
@@ -27,6 +28,10 @@ export async function notifyPrayerTeam(inboxUrl: string): Promise<void> {
     });
   } catch (error) {
     // Only the error's name: its message could include addresses.
-    console.error("Prayer notification failed:", error instanceof Error ? error.name : "unknown");
+    const name = error instanceof Error ? error.name : "unknown";
+    console.error("Prayer notification failed:", name);
+    // Caught here, so Next.js won't report it. Flushed because the server may stop after this.
+    Sentry.captureMessage(`Prayer notification failed: ${name}`, "error");
+    await Sentry.flush(2000);
   }
 }
