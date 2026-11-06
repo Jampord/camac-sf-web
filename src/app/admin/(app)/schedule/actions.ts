@@ -7,7 +7,7 @@ import { occurrenceOn } from "@/lib/schedule/dates";
 import { parseAssignments } from "@/lib/schedule/input";
 import { getService } from "@/lib/schedule/roles";
 import { manilaInputToUtc } from "@/lib/time";
-import { findServiceEvent } from "./service-event";
+import { findServiceEvent } from "@/lib/schedule/load";
 
 // Server Actions can be called by a direct POST, so this checks requireAdmin() itself.
 

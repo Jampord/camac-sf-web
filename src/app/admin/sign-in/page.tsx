@@ -41,7 +41,8 @@ async function SignInError({
 
   const message =
     error === "AccessDenied"
-      ? "This Google account isn't on the admin list. Ask the app builder to add you."
+      ? // Members who sign in from /schedule land here too (Auth.js has one error page).
+        "This Google account isn't on the list. To see the serving schedule, ask a church admin to add you."
       : "Sign-in didn't work. Please try again.";
 
   return (

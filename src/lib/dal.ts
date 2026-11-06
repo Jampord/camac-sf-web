@@ -43,9 +43,18 @@ export async function getAdmin(): Promise<Admin | null> {
 export async function requireAdmin(): Promise<Admin> {
   const user = await getSignedInUser();
   if (!user) redirect("/admin/sign-in");
-  // Signed in, but a member: nothing here for them.
-  if (user.role !== "ADMIN") redirect("/");
+  // Signed in, but a member: the schedule is all they can see.
+  if (user.role !== "ADMIN") redirect("/schedule");
   return asAdmin(user);
+}
+
+export type Member = { name: string | null; email: string; isAdmin: boolean };
+
+/** Anyone on the list, admin or member, or null. For the serving schedule. */
+export async function getMember(): Promise<Member | null> {
+  const user = await getSignedInUser();
+  if (!user) return null;
+  return { name: user.name, email: user.email, isAdmin: user.role === "ADMIN" };
 }
 
 function asAdmin({ id, email, name, canViewPrayer }: SignedInUser): Admin {

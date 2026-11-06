@@ -17,7 +17,7 @@ vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/db", () => ({ db: { user: { findUnique: mocks.findUnique } } }));
 
-const { getAdmin, requireAdmin, requirePrayerTeam } = await import("./dal");
+const { getAdmin, getMember, requireAdmin, requirePrayerTeam } = await import("./dal");
 
 const ADMIN = {
   id: "a1",
@@ -69,9 +69,9 @@ describe("requireAdmin", () => {
     await expect(requireAdmin()).resolves.toMatchObject({ id: "a1" });
   });
 
-  it("sends a member to the public site", async () => {
+  it("sends a member to the serving schedule", async () => {
     signedInAs(MEMBER);
-    await expect(requireAdmin()).rejects.toHaveProperty("message", "redirect:/");
+    await expect(requireAdmin()).rejects.toHaveProperty("message", "redirect:/schedule");
   });
 
   it("sends a signed-out visitor to sign-in", async () => {
@@ -88,11 +88,28 @@ describe("requirePrayerTeam", () => {
 
   it("keeps a member out even if canViewPrayer were set", async () => {
     signedInAs({ ...MEMBER, canViewPrayer: true });
-    await expect(requirePrayerTeam()).rejects.toHaveProperty("message", "redirect:/");
+    await expect(requirePrayerTeam()).rejects.toHaveProperty("message", "redirect:/schedule");
   });
 
   it("sends other admins back to admin home", async () => {
     signedInAs(ADMIN);
     await expect(requirePrayerTeam()).rejects.toHaveProperty("message", "redirect:/admin");
+  });
+});
+
+describe("getMember", () => {
+  it("returns a member", async () => {
+    signedInAs(MEMBER);
+    expect(await getMember()).toEqual({ name: "Admin", email: "member@example.com", isAdmin: false });
+  });
+
+  it("returns an admin too, marked as one", async () => {
+    signedInAs(ADMIN);
+    expect(await getMember()).toMatchObject({ isAdmin: true });
+  });
+
+  it("returns null when nobody is signed in", async () => {
+    signedInAs(null);
+    expect(await getMember()).toBeNull();
   });
 });

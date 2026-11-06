@@ -8,7 +8,7 @@ import { db } from "@/lib/db";
 import { occurrenceOn } from "@/lib/schedule/dates";
 import { getService, rolesOf } from "@/lib/schedule/roles";
 import { formatManila, manilaInputToUtc } from "@/lib/time";
-import { findServiceEvent } from "../../service-event";
+import { findServiceEvent } from "@/lib/schedule/load";
 import { AssignmentForm } from "./assignment-form";
 
 export const metadata: Metadata = { title: "Edit schedule" };
