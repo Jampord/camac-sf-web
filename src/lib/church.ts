@@ -21,7 +21,8 @@ export const FIRST_SUNDAY: { label: string; text: string }[] = [
 
 /**
  * The church's Facebook page and its Messenger link (m.me/<page username>). Public, so they can
- * live here. Left null, their buttons don't show.
+ * live here. Set to null, a button doesn't show. Use the page's own address, not a
+ * facebook.com/share/… link: those carry tracking and can expire.
  */
-export const FACEBOOK_URL: string | null = null;
-export const MESSENGER_URL: string | null = null;
+export const FACEBOOK_URL: string | null = "https://www.facebook.com/CAMACSanFernando08";
+export const MESSENGER_URL: string | null = "https://m.me/CAMACSanFernando08";
