@@ -48,9 +48,10 @@ export default function Home() {
             ))}
           </div>
           <h3 className="font-heading mt-2 text-xl font-semibold">Your first Sunday</h3>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-2 text-lg">
+          {/* On phones each label sits above its answer, so the answers get the full width. */}
+          <dl className="grid gap-x-5 gap-y-4 text-lg sm:grid-cols-[auto_1fr] sm:gap-y-2">
             {FIRST_SUNDAY.map(({ label, text }) => (
-              <div key={label} className="contents">
+              <div key={label} className="flex flex-col sm:contents">
                 <dt className="font-bold">{label}</dt>
                 <dd>{text}</dd>
               </div>
@@ -114,8 +115,11 @@ async function Welcome() {
       </h1>
       <p className="text-xl leading-relaxed">{WELCOME}</p>
       {others.map((service) => (
-        <p key={service.id} className="text-lg text-muted-foreground">
-          {service.title} every {formatManila(service.startsAt, { weekday: "long" })} at {time(service)}
+        // The other regular services, set in full color with a bold name so they read as part of
+        // the welcome, a step below the headline.
+        <p key={service.id} className="text-lg">
+          <strong className="font-bold text-primary">{service.title}</strong> every{" "}
+          {formatManila(service.startsAt, { weekday: "long" })} at {time(service)}
         </p>
       ))}
       <div className="mt-2 grid grid-cols-2 gap-3">

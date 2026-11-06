@@ -1,22 +1,27 @@
 // The landing page's words and links, kept in one place so they're easy to change.
 //
-// PLACEHOLDER: the welcome and about text below are drafts. Replace them with the church's own
-// words before this goes live. Keep personal details out (this repo is public): a phone number
-// or a leader's own contact belongs in an admin setting, like the church address.
+// Keep personal details out (this repo is public): a phone number or a leader's own contact
+// belongs in an admin setting, like the church address. People reach the church on Messenger.
 
 export const WELCOME =
-  "Worship, preaching, and Sunday School for the kids. Everyone is welcome, first visit or fiftieth.";
+  "We warmly invite you to join us for Sunday worship. Come as you are. Sunday School is available for children, and a heartfelt welcome awaits you, whether this is your first Sunday with us or your fiftieth.";
 
 export const ABOUT = [
-  "We are a church family in San Fernando, part of the Christian and Missionary Alliance. We gather to worship, pray for one another, and serve our town together.",
-  "Write two or three sentences here in the church's own words: how it started, what matters to you, who you hope to welcome.",
+  "We're City of San Fernando Alliance Church, a family of believers in San Fernando and part of the Christian and Missionary Alliance. Every Sunday we gather to worship God, open the Bible together, and pray for one another.",
+  "Whether you've followed Jesus for years or you're simply curious about him, there's a place for you here. Come as you are, sit with us, and let us get to know you.",
 ];
 
 /** "Your first Sunday": what a visitor wants to know before walking in. */
 export const FIRST_SUNDAY: { label: string; text: string }[] = [
-  { label: "Kids", text: "Sunday School runs during the service" },
-  { label: "Wear", text: "Whatever you're comfortable in" },
-  { label: "Getting there", text: "A note about parking or the nearest landmark" },
+  { label: "Kids", text: "Sunday School for children 10 and under, during the service" },
+  {
+    label: "Wear",
+    text: "Whatever you're comfortable in. We just ask that you skip shorts and short skirts.",
+  },
+  {
+    label: "Getting there",
+    text: "Driving? Enter through the Kalayaan Village gate for parking. Commuting? Come in through Quebiawan.",
+  },
 ];
 
 /**
