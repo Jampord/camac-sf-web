@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Atkinson_Hyperlegible_Next } from "next/font/google";
+import { Atkinson_Hyperlegible_Next, Literata } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
@@ -14,6 +14,15 @@ const atkinson = Atkinson_Hyperlegible_Next({
   fallback: ["system-ui", "Arial", "sans-serif"],
 });
 
+// Headings only (the Warm direction): a book serif with optical sizes, so large titles get the
+// display cut. Body text, dates and buttons stay Atkinson.
+const literata = Literata({
+  variable: "--font-literata",
+  subsets: ["latin", "latin-ext"],
+  axes: ["opsz"],
+  fallback: ["Georgia", "Times New Roman", "serif"],
+});
+
 export const metadata: Metadata = {
   title: {
     default: "CAMAC - San Fernando Events",
@@ -25,7 +34,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // The theme script adds `dark` to <html> before React hydrates; that's expected.
-    <html lang="en" className={`${atkinson.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${atkinson.variable} ${literata.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
