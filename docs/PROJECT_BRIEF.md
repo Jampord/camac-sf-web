@@ -331,14 +331,14 @@ Facebook auto-posting via Graph API, RSVP, booking request/approval flow, venue 
 - ✅ **Admins:** 2–4 people; all have Google accounts → Google sign-in only, no magic-link fallback needed for now.
 - ✅ **Prayer requests:** leadership is comfortable storing them; visible only to the church's **prayer team** (`canViewPrayer`).
 - ✅ **Hosting:** free hosting OK. The church has **no domain** yet → launch on `*.vercel.app`.
-- ☐ **Tell leadership** the developer has database access to prayer requests, and commits to not reading them (§4).
+- ✅ **Told leadership** the developer has database access to prayer requests, and commits to not reading them (§4).
 
 ## 12. Before building
 
-- [ ] Admin emails for the allowlist and the prayer-team members.
-- [ ] CAMAC - San Fernando **logo file and brand colors** (from the volunteer's Canva).
+- [x] Admin emails for the allowlist and the prayer-team members.
+- [x] CAMAC - San Fernando **logo file and brand colors** (from the volunteer's Canva).
 - [x] **2–3 recent announcement posts** from the volunteer, to base the copy-announcement template on.
-- [ ] Day, time and venue for **Sunday service, prayer meeting and Bible study** (seed data).
-- [ ] A dedicated Gmail account + app password for notifications.
+- [ ] Day, time and venue for **Sunday service, prayer meeting and Bible study** (seed data). Sunday service and prayer meeting are seeded; Bible study is still to come.
+- [x] A dedicated Gmail account + app password for notifications.
 - [ ] Email Vercel support about the giving QR (needed before Phase 2, not before the MVP).
-- [ ] Church contact name for the /privacy page.
+- [x] Church contact name for the /privacy page.
