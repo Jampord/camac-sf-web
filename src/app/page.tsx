@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { MapIcon, MessageCircleIcon } from "lucide-react";
+import { SectionHeading } from "@/components/section-heading";
 import { SiteHeader } from "@/components/site-header";
 import { EventListSkeleton } from "@/components/skeletons";
 import { buttonVariants } from "@/components/ui/button";
@@ -18,8 +19,6 @@ import { AgendaRow, entryKey } from "./events/agenda";
 // it. Members mostly arrive on event pages from the group chat, so this page can lead with the
 // welcome. Calendar data is read per request inside <Suspense>; the rest prerenders.
 
-const sectionHeading =
-  "font-heading self-start border-b-2 border-gold pb-2 text-3xl font-semibold tracking-tight";
 const bigButton = "h-14 w-full text-lg";
 
 export default function Home() {
@@ -32,9 +31,7 @@ export default function Home() {
         </Suspense>
 
         <section aria-labelledby="coming-up" className="flex flex-col gap-4">
-          <h2 id="coming-up" className={sectionHeading}>
-            Coming up
-          </h2>
+          <SectionHeading id="coming-up">Coming up</SectionHeading>
           <Suspense fallback={<EventListSkeleton label="Loading events" rows={3} />}>
             <ComingUp />
           </Suspense>
@@ -44,9 +41,7 @@ export default function Home() {
         </section>
 
         <section id="about" aria-labelledby="about-heading" className="flex scroll-mt-4 flex-col gap-4">
-          <h2 id="about-heading" className={sectionHeading}>
-            About us
-          </h2>
+          <SectionHeading id="about-heading">About us</SectionHeading>
           <div className="flex flex-col gap-3 text-lg leading-relaxed">
             {ABOUT.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
@@ -64,9 +59,7 @@ export default function Home() {
         </section>
 
         <section id="contact" aria-labelledby="contact-heading" className="flex scroll-mt-4 flex-col gap-4">
-          <h2 id="contact-heading" className={sectionHeading}>
-            Visit or message us
-          </h2>
+          <SectionHeading id="contact-heading">Visit or message us</SectionHeading>
           <Suspense>
             <Address />
           </Suspense>

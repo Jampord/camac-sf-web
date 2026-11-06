@@ -25,10 +25,10 @@ function Form({ onReset }: { onReset: () => void }) {
 
   if (state.sent) {
     return (
-      <div role="status" className="flex flex-col items-start gap-3 rounded-lg bg-muted p-6">
-        <p className="text-xl font-bold">Thank you. Your request was sent.</p>
+      <div role="status" className="flex flex-col items-start gap-3 rounded-2xl border bg-card p-6">
+        <p className="font-heading text-3xl font-semibold">Thank you. Your request was sent.</p>
         <p className="text-lg">The prayer team will pray for you.</p>
-        <Button variant="outline" size="lg" className="text-base" onClick={onReset}>
+        <Button variant="outline" size="lg" className="mt-2 h-14 text-lg" onClick={onReset}>
           Send another request
         </Button>
       </div>
@@ -36,9 +36,9 @@ function Form({ onReset }: { onReset: () => void }) {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form action={formAction} className="flex flex-col gap-6 rounded-2xl border bg-card p-5 sm:p-6">
       <Field data-invalid={!!state.errors?.body}>
-        <FieldLabel htmlFor="body" className="text-base">
+        <FieldLabel htmlFor="body" className="text-lg font-semibold">
           Your prayer request
         </FieldLabel>
         <Textarea
@@ -48,13 +48,13 @@ function Form({ onReset }: { onReset: () => void }) {
           rows={6}
           maxLength={BODY_MAX}
           aria-invalid={!!state.errors?.body}
-          className="min-h-36 text-base md:text-base"
+          className="min-h-40 bg-background text-lg md:text-lg"
         />
         <FieldError>{state.errors?.body}</FieldError>
       </Field>
 
       <Field data-invalid={!!state.errors?.name}>
-        <FieldLabel htmlFor="name" className="text-base">
+        <FieldLabel htmlFor="name" className="text-lg font-semibold">
           Your name (optional)
         </FieldLabel>
         <Input
@@ -63,14 +63,14 @@ function Form({ onReset }: { onReset: () => void }) {
           maxLength={120}
           autoComplete="name"
           aria-invalid={!!state.errors?.name}
-          className="h-11 text-base md:text-base"
+          className="h-14 bg-background text-lg md:text-lg"
         />
         <FieldDescription>Leave it blank to stay anonymous.</FieldDescription>
         <FieldError>{state.errors?.name}</FieldError>
       </Field>
 
       <Field data-invalid={!!state.errors?.contact}>
-        <FieldLabel htmlFor="contact" className="text-base">
+        <FieldLabel htmlFor="contact" className="text-lg font-semibold">
           Phone or email (optional)
         </FieldLabel>
         <Input
@@ -78,7 +78,7 @@ function Form({ onReset }: { onReset: () => void }) {
           name="contact"
           maxLength={200}
           aria-invalid={!!state.errors?.contact}
-          className="h-11 text-base md:text-base"
+          className="h-14 bg-background text-lg md:text-lg"
         />
         <FieldDescription>Only if you&apos;d like someone to reach out to you.</FieldDescription>
         <FieldError>{state.errors?.contact}</FieldError>
@@ -88,7 +88,7 @@ function Form({ onReset }: { onReset: () => void }) {
         {/* Off unless ticked. Saved for a possible prayer wall; nothing is shared today. */}
         <Checkbox id="shareConsent" name="shareConsent" />
         {/* Base UI names its checkbox via aria-labelledby="<id>-label", so the label needs that id. */}
-        <FieldLabel htmlFor="shareConsent" id="shareConsent-label" className="text-base font-normal">
+        <FieldLabel htmlFor="shareConsent" id="shareConsent-label" className="text-lg font-normal">
           It&apos;s OK to share this with the congregation
         </FieldLabel>
       </Field>
@@ -102,7 +102,7 @@ function Form({ onReset }: { onReset: () => void }) {
       </div>
 
       {/* The privacy notice (brief §6.7): who sees it, when it's deleted, how to ask for removal. */}
-      <p className="text-muted-foreground">
+      <p className="rounded-xl bg-muted p-4 text-muted-foreground">
         Only the church&apos;s prayer team reads your request. It&apos;s deleted automatically after
         one year unless the team keeps it as a testimony, and sooner if you ask.{" "}
         <Link href="/privacy" className="font-medium text-foreground underline underline-offset-4">
@@ -116,7 +116,7 @@ function Form({ onReset }: { onReset: () => void }) {
         </p>
       )}
 
-      <Button type="submit" size="lg" disabled={pending} className="w-full text-base sm:w-fit">
+      <Button type="submit" size="lg" disabled={pending} className="h-14 w-full text-lg">
         {pending && <Spinner />}
         {pending ? "Sending…" : "Send prayer request"}
       </Button>
