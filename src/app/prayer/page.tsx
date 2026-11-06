@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ChevronLeftIcon } from "lucide-react";
-import { InlinePending } from "@/components/link-pending";
 import { SiteHeader } from "@/components/site-header";
 import { PrayerForm } from "./prayer-form";
 
@@ -15,16 +12,16 @@ export default function PrayerPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-6">
-        <Link
-          href="/"
-          className="-ml-1 flex w-fit items-center gap-1 rounded-md py-2 pr-2 font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          <ChevronLeftIcon className="size-5" aria-hidden />
-          All events
-          <InlinePending />
-        </Link>
-        <h1 className="font-heading text-4xl font-bold tracking-tight">Send a prayer request</h1>
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
+        <div className="flex flex-col gap-3">
+          <h1 className="font-heading text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
+            Send a prayer request
+          </h1>
+          <p className="text-xl leading-relaxed">
+            The church&apos;s prayer team prays over every request. You don&apos;t need to sign in,
+            and you can leave your name out.
+          </p>
+        </div>
         <PrayerForm />
       </main>
     </>

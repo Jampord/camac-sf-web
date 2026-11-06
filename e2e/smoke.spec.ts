@@ -1,39 +1,55 @@
 import { expect, test } from "@playwright/test";
 
-// Grows into the main public flow (agenda -> event page -> add to calendar) in build step 2+.
-test("home page loads", async ({ page }) => {
+test("the landing page leads to the full agenda", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Upcoming events" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Coming up" })).toBeVisible();
+  await page.getByRole("link", { name: "See all events" }).click();
+  await expect(page).toHaveURL(/\/events$/);
+  await expect(page.getByRole("heading", { name: "Upcoming events", level: 1 })).toBeVisible();
+});
+
+// A tab bar on phones, header links on wider screens: only one is visible at a time, so this
+// works at either size.
+test("the main navigation reaches every public section", async ({ page }) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Main" });
+  await nav.getByRole("link", { name: "Events" }).click();
+  await expect(page).toHaveURL(/\/events$/);
+  await expect(nav.getByRole("link", { name: "Events" })).toHaveAttribute("aria-current", "page");
+  await nav.getByRole("link", { name: "Prayer" }).click();
+  await expect(page).toHaveURL(/\/prayer$/);
+  await nav.getByRole("link", { name: "Home" }).click();
+  await expect(page).toHaveURL(/\/$/);
 });
 
 test("past events are one tap from the agenda", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/events");
   await page.getByRole("link", { name: "Past events" }).click();
   await expect(page).toHaveURL(/\/past$/);
   await expect(page.getByRole("heading", { name: "Past events", level: 1 })).toBeVisible();
   await page.getByRole("link", { name: "Upcoming events" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/events$/);
 });
 
 // Works with or without events in the database (CI starts empty, dev has data).
 test("the ministry dropdown filters the agenda through the URL", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/events");
   const filter = page.getByLabel("Ministry");
   await expect(filter).toHaveValue("");
 
   await filter.selectOption({ label: "Youth" });
-  await expect(page).toHaveURL(/\/\?ministry=youth$/);
+  await expect(page).toHaveURL(/\/events\?ministry=youth$/);
   await expect(filter).toHaveValue("youth");
 
   // A shared filtered link opens with that ministry already chosen.
-  await page.goto("/?ministry=youth");
+  await page.goto("/events?ministry=youth");
   await expect(page.getByLabel("Ministry")).toHaveValue("youth");
 });
 
 // Doesn't submit: CI has no prayer data to clean up, and the form must never need a sign-in.
-test("the prayer form is one tap from the agenda, with its privacy notice", async ({ page }) => {
+test("the prayer form is one tap from home, with its privacy notice", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: "Send a prayer request" }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Prayer" }).click();
   await expect(page).toHaveURL(/\/prayer$/);
   await expect(page.getByLabel("Your prayer request")).toBeVisible();
   await expect(

@@ -95,13 +95,14 @@ export async function Agenda({ ministry }: { ministry?: string }) {
   );
 }
 
-const entryKey = ({ event, startsAt, day }: Entry) =>
+export const entryKey = ({ event, startsAt, day }: Entry) =>
   `${event.id}-${startsAt.getTime()}-${day.index}`;
 
 const rowLink =
   "relative -mx-2 flex gap-4 rounded-lg px-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 
-function AgendaRow({ entry, now }: { entry: Entry; now: Date }) {
+/** One event on one day. Also used by the landing page's "Coming up". */
+export function AgendaRow({ entry, now }: { entry: Entry; now: Date }) {
   const { event, startsAt, endsAt, day } = entry;
   const cancelled = event.cancelledAt !== null;
   const live = cancelled ? null : liveStatus(entry, now);
@@ -274,7 +275,7 @@ function EmptyAgenda({ ministryName }: { ministryName?: string }) {
         New events are posted here and on the church Facebook page.
       </p>
       {ministryName && (
-        <Link href="/" scroll={false} className={buttonVariants({ variant: "outline" })}>
+        <Link href="/events" scroll={false} className={buttonVariants({ variant: "outline" })}>
           Show all events
         </Link>
       )}

@@ -12,10 +12,19 @@ group chat). Every event link unfurls into a rich preview card.
 
 **For members (no login)**
 
-- **Agenda:** this week first, then the coming months grouped by month, with a ministry filter
-  (events with no ministry show as Church-wide). Weekly services appear once with their pattern.
-- **Event pages:** poster, venue with a Google Maps link, contact person, attire, and clear
-  "Cancelled" and "This event has ended" notices. Past events are one tap away.
+- **Landing page:** the service times up front ("Sundays at 9:00 AM"), the next few special
+  events, a short about section with what to expect on a first Sunday, and how to visit or message
+  the church.
+- **Navigation:** Home, Events and Prayer, as a tab bar at the bottom on phones and header links
+  on wider screens.
+- **Agenda** at `/events`: this week first, then the coming months grouped by month, with a
+  ministry filter (events with no ministry show as Church-wide). Weekly services appear once with
+  their pattern. Past events are one tap away.
+- **Event pages:** what, when and where first in large type, with big Add to calendar and Open in
+  Maps buttons; then the poster, details, contact person and attire, and clear "Cancelled" and
+  "This event has ended" notices.
+- **Poster viewer:** tap a poster to see it full screen, then tap or pinch to zoom into the small
+  print.
 - **Share card:** a generated 1200×630 preview image for Messenger and Facebook. Its URL is
   versioned, so edits produce a new image.
 - **Copy announcement** in the announcements volunteer's own post format, plus a **Share** button
@@ -48,6 +57,8 @@ records.
 - **Auth.js v5**: Google sign-in for admins, allowlisted by the `User` table
 - **Cloudinary** for posters (signed, admin-only uploads), **Nodemailer** over Gmail SMTP for
   prayer notifications, **qrcode** for QR codes, **Sentry** for server-side error tracking
+- **Atkinson Hyperlegible Next** for text (designed for low-vision readers) and **Literata** for
+  headings, on a warm rose-tinted palette taken from the church logo
 - **Vitest** for logic, **Playwright** for end-to-end tests
 - **GitHub Actions** CI; deployed on **Vercel Hobby** with **Vercel Cron**
 
@@ -92,11 +103,12 @@ database; there is deliberately no UI for it.
 prisma/schema.prisma      data model (brief §7)
 prisma/seed.ts            ministries, admin allowlist and weekly services
 src/auth.ts               Auth.js config (Google, allowlist check)
-src/app/                  public routes: agenda, events/[slug] (+ share card, .ics, QR), past,
-                          prayer, privacy
+src/app/                  public routes: landing page, events (the agenda) and events/[slug]
+                          (+ share card, .ics, QR), past, prayer, privacy
 src/app/admin/(app)/      admin pages: events, prayer inbox, serving schedule
 src/app/api/              Auth.js, the daily cron, and the open/copy/share counter
 src/components/           shared UI (shadcn primitives in ui/)
+src/lib/church.ts         the landing page's own words and the church's Facebook links
 src/lib/dal.ts            requireAdmin() / requirePrayerTeam(): server-side access checks
 src/lib/db.ts             Prisma client (server-only)
 src/lib/events/           recurrence, agenda, announcement text, calendar, metric, share card

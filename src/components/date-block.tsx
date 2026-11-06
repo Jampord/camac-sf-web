@@ -27,16 +27,17 @@ export function DateBlock({
   const sunday = manilaWeekday(date) === 0;
 
   return (
+    // A small card, like a page torn from a wall calendar, with the day in the heading serif.
     <div
       className={cn(
-        "flex w-16 shrink-0 flex-col items-center rounded-lg py-1.5",
-        today && "bg-accent",
+        "flex w-16 shrink-0 flex-col items-center rounded-xl border bg-card py-1.5",
+        today && "border-accent-foreground/30 bg-accent",
       )}
     >
       <span
         className={cn(
-          "text-4xl leading-none font-bold tracking-tight tabular-nums",
-          sunday && "text-sunday",
+          "font-heading text-4xl leading-none font-semibold tabular-nums",
+          sunday ? "text-sunday" : "text-primary",
         )}
       >
         {manilaDateParts(date).day}

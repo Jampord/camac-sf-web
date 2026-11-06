@@ -91,17 +91,32 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
   - **Delete = soft delete**, for mistakes and duplicates. Restorable for 30 days, then purged by cron.
 - **Slugs:** generated **once at creation** as title + month/year (`youth-camp-2027-04`), numeric suffix on collision, **never changed on edit** so shared links don't break.
 
-### 6.2 Public calendar & event pages
+### 6.2 Public site: landing page, agenda & event pages
 
 - No login. Mobile-first, readable for older members (large text, high contrast, simple navigation).
-- **Agenda list** (no month grid in the MVP), large dates, one event per row, in three parts:
+- **Two front doors** (UI redesign, Nov 2026, before the user test): many older members only ever open an event link from the group chat, so the **event page** must stand on its own; visitors who find the site on Facebook or a QR code land on the **landing page**.
+- **Look:** chosen by the builder from three mockups (Warm, Bold, Calm), with the announcements volunteer to review: **Warm**. A rose-tinted paper instead of stark white, **Literata** serif for headings only (Atkinson Hyperlegible stays for body text, dates and buttons), maroon buttons, a thin gold rule under section headings, wall-calendar date cards with Sundays in red. Light and dark.
+- **Navigation:** **Home · Events · Prayer** as a **bottom tab bar on phones** (thumb-reachable, like Messenger) and header links on wider screens. **No hamburger menu**: older visitors rarely open one. The members-only Schedule is not a tab.
+- **Landing page (`/`):** one scrolling page, in this order:
+  - **Welcome:** the main weekly service as the headline ("Sundays at 9:00 AM", from the weekly events, so it follows any change), the other regular services under it, and Directions / About us buttons.
+  - **Coming up:** the next 3 **special** events (weekly services are already in the welcome; cancelled ones stay on `/events`), then "See all events".
+  - **About us** and **Your first Sunday** (what to expect).
+  - **Visit or message us:** the church address with "Get directions", "Message us on Messenger" and the Facebook page. **No contact form**: nobody would watch its inbox, and it draws spam.
+  - The welcome and about wording lives in `src/lib/church.ts`, written by the church; personal contact details stay out of the repo (admin settings, like the address).
+- **Agenda list at `/events`** (no month grid in the MVP), large dates, one event per row, in three parts:
   - **This week** (next 7 days): everything, weekly services as one compact line each. What's on right now is a filled maroon row ("Happening now, until 12:00 PM"); anything starting within 3 hours says so ("Starts in 2 hours").
   - **Every week:** each weekly service once with its pattern, plus skipped weeks **at least 3 months ahead** ("Not on Sun, Nov 22").
   - **By month:** special (one-off) events only, so they aren't buried under weekly services.
 - **Ministry filter:** one dropdown (the phone's own picker), not chips: chips filled the first screen. Church-wide events show under every filter.
 - **Loading:** pages stream behind calendar-shaped placeholders; a tapped row or link shows a spinner if its page is slow; busy buttons show a spinner.
 - Shows **from today forward**; a **"Past events"** list is one tap away (future home of the Phase 3 Facebook photos link).
-- Event page: details, poster (if any), contact person, attire, Share / Copy announcement, add-to-calendar, link to the printable QR page.
+- **Event page,** for someone arriving from the group chat, top to bottom:
+  - **What, when and where first, large:** the title, then the date, time and venue (with address) as three icon lines.
+  - Two big buttons: **Add to calendar** (asks which calendar: Google, or iPhone/other) and **Open in Maps**.
+  - Then the poster, description, what to wear and contact person.
+  - Then "Telling others about it?": Copy announcement, Share and the printable QR page link, mostly for the announcements volunteer.
+  - A big "See all events" at the end.
+- **Poster viewer:** tapping a poster fills the screen; tap or pinch to zoom (tapping zooms on that spot), a large ✕ to close. Canva posters are portrait with small print. Landing-page photos, if added later, use the same viewer. Still **no photo gallery** (see "Explicitly not planned").
 - **After an event ends:** the page stays, with a **"This event has ended"** banner and no add-to-calendar button.
 - **Recurring series:** page shows the pattern ("Every Sunday · 9:00 AM") and the next occurrence below it.
 
@@ -269,10 +284,12 @@ No deadline — work top to bottom. If time gets tight, the metric-critical item
 | **6** | **Pre-launch user test:** the announcements volunteer and two older members try it on their own phones — find next Sunday's event, open an event from a pasted link, add it to their calendar. Fix what trips them up. **Then admins start using it and the 4-week measurement window begins.** |
 | **7** | Prayer requests: form + privacy notice + /privacy page, honeypot + rate limit, prayer-team inbox, status workflow, email notifications, retention cron; soft-delete purge cron                                                                                                                  |
 
+**UI redesign (Nov 2026), done before step 6** so the user test runs on the UI that stays: Warm theme, landing page, agenda moved to `/events`, phone tab bar, event page reordered, poster viewer, prayer and privacy pages restyled (§6.2).
+
 ## 9. Engineering & portfolio
 
 - **Public repo.** No real admin emails or private church details in code — seed values come from env vars.
-- **Tests:** Vitest on the tricky logic (recurrence expansion + skip dates, Manila time handling, announcement text, slug generation, metric calculation); one Playwright smoke test of the main public flow.
+- **Tests:** Vitest on the tricky logic (recurrence expansion + skip dates, Manila time handling, announcement text, slug generation, metric calculation); Playwright smoke tests of the main public flow (landing page, navigation, agenda, prayer form) and of admin pages refusing signed-out visitors.
 - **CI:** GitHub Actions on push (typecheck, lint, tests).
 - **Monitoring:** free error tracking on server routes, plus a short "What to do if something looks wrong" note for admins (message the builder).
 - **README:** screenshots (share card in Messenger, agenda list, metric panel) and the actual success-metric results.

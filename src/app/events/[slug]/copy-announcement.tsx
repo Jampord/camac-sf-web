@@ -41,7 +41,7 @@ export function CopyAnnouncement({ event, slug }: { event: AnnouncementEvent; sl
 
   return (
     <>
-      <Button size="lg" className="w-full text-base sm:w-fit" onClick={copy}>
+      <Button variant="outline" size="lg" className="w-full text-base sm:w-fit" onClick={copy}>
         {copied ? <CheckIcon aria-hidden /> : <CopyIcon aria-hidden />}
         {copied ? "Copied" : "Copy announcement"}
       </Button>

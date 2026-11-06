@@ -13,7 +13,7 @@ export default function NotFound() {
         <p className="text-lg text-muted-foreground">
           The event may not be published yet, or the link may be incomplete.
         </p>
-        <Link href="/" className={buttonVariants({ size: "lg" })}>
+        <Link href="/events" className={buttonVariants({ size: "lg" })}>
           See upcoming events
         </Link>
       </main>

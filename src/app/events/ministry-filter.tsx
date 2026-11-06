@@ -26,8 +26,8 @@ export function MinistryFilter({
 
   return (
     <>
-      {/* Works without JavaScript too: the form submits ?ministry=… to the home page. */}
-      <form action="/" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+      {/* Works without JavaScript too: the form submits ?ministry=… to the events page. */}
+      <form action="/events" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <label className="flex items-center gap-3 font-medium">
           Ministry
           <select
@@ -38,7 +38,7 @@ export function MinistryFilter({
             defaultValue={selected ?? ""}
             onChange={(e) => {
               const slug = e.target.value;
-              startTransition(() => router.push(slug ? `/?ministry=${slug}` : "/", { scroll: false }));
+              startTransition(() => router.push(slug ? `/events?ministry=${slug}` : "/events", { scroll: false }));
             }}
             className="h-11 min-w-0 max-w-[14rem] rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
