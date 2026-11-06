@@ -16,6 +16,10 @@ describe("cleanupCutoffs", () => {
     expect(cleanupCutoffs(now).purgeEventsDeletedBefore).toEqual(ago(30));
   });
 
+  it("deletes serving schedule entries a year after their date", () => {
+    expect(cleanupCutoffs(now).deleteScheduleBefore).toEqual(ago(365));
+  });
+
   it("keeps rate-limit rows only for the hour they count toward", () => {
     // The job runs daily, so an hour's cutoff means no row lives past about a day (see /privacy).
     expect(cleanupCutoffs(now).deleteRateLimitHitsBefore).toEqual(new Date(now.getTime() - 3_600_000));
