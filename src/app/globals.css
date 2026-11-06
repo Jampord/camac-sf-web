@@ -114,6 +114,10 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Room at the bottom for the phone tab bar (site-nav.tsx), so it never covers the last line. */
+  body:has([data-tab-bar]) {
+    @apply max-md:pb-[calc(5rem+env(safe-area-inset-bottom))] print:pb-0;
+  }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;

@@ -82,7 +82,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-6">
         <Link
-          href="/"
+          href="/events"
           className="-ml-1 flex w-fit items-center gap-1 rounded-md py-2 pr-2 font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <ChevronLeftIcon className="size-5" aria-hidden />

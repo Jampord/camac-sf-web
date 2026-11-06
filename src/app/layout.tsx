@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Atkinson_Hyperlegible_Next, Literata } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { themeInitScript } from "@/lib/theme";
@@ -30,6 +30,10 @@ export const metadata: Metadata = {
   },
   description: "Events and announcements for CAMAC - San Fernando.",
 };
+
+// Lets the tab bar reach the bottom edge on phones with a home indicator; it pads itself with
+// env(safe-area-inset-bottom) so its buttons stay clear of it.
+export const viewport: Viewport = { viewportFit: "cover" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
