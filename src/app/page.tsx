@@ -75,6 +75,14 @@ export default function Home() {
               Our Facebook page
             </a>
           )}
+          {/* The serving schedule isn't a tab (it's for members), so this is its way in. */}
+          <p className="mt-2 rounded-xl bg-accent p-4 text-lg">
+            Serving this week? Members can see the{" "}
+            <Link href="/schedule" className="font-semibold text-accent-foreground underline underline-offset-4">
+              serving schedule
+            </Link>
+            .
+          </p>
         </section>
 
         <footer className="flex gap-5 border-t pt-6 text-muted-foreground">

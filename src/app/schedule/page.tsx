@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { signIn, signOut } from "@/auth";
 import { CopyButton } from "@/components/copy-button";
+import { SectionHeading } from "@/components/section-heading";
 import { SiteHeader } from "@/components/site-header";
 import { EventListSkeleton } from "@/components/skeletons";
 import { SubmitButton } from "@/components/submit-button";
@@ -26,10 +27,12 @@ export default function SchedulePage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="font-heading text-4xl font-bold tracking-tight">Serving schedule</h1>
-          <p className="text-muted-foreground">Who&apos;s serving in the next {SCHEDULE_WEEKS} weeks.</p>
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-10 px-4 py-8">
+        <div className="flex flex-col gap-3">
+          <h1 className="font-heading text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
+            Serving schedule
+          </h1>
+          <p className="text-xl">Who&apos;s serving in the next {SCHEDULE_WEEKS} weeks.</p>
         </div>
         <Suspense fallback={<EventListSkeleton />}>
           <MemberSchedule />
@@ -57,9 +60,9 @@ async function MemberSchedule() {
 
 function SignInPrompt() {
   return (
-    <div className="flex flex-col gap-4 rounded-lg border p-6">
-      <p className="text-lg">Sign in with Google to see the schedule.</p>
-      <p className="text-muted-foreground">
+    <div className="flex flex-col gap-4 rounded-2xl border bg-card p-6">
+      <p className="font-heading text-2xl font-semibold">Sign in with Google to see the schedule.</p>
+      <p className="text-lg text-muted-foreground">
         It&apos;s only for church members on the list. If you can&apos;t get in, ask a church admin
         to add you.
       </p>
@@ -69,7 +72,7 @@ function SignInPrompt() {
           await signIn("google", { redirectTo: "/schedule" });
         }}
       >
-        <SubmitButton size="lg" className="w-full text-base sm:w-fit">
+        <SubmitButton size="lg" className="h-14 w-full text-lg">
           Sign in with Google
         </SubmitButton>
       </form>
@@ -87,10 +90,10 @@ function ServiceSchedule({
   assignments: Assignment[];
 }) {
   return (
-    <section aria-label={service.title} className="flex flex-col gap-3">
-      <h2 className="text-2xl font-bold">{service.title}</h2>
+    <section aria-label={service.title} className="flex flex-col gap-4">
+      <SectionHeading>{service.title}</SectionHeading>
       {dates.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-6 text-muted-foreground">
+        <p className="rounded-2xl border border-dashed p-6 text-muted-foreground">
           This service isn&apos;t on the calendar right now.
         </p>
       ) : (
@@ -127,7 +130,7 @@ function ServiceDay({
 
   if (date.skipped) {
     return (
-      <div className="flex min-h-12 items-center justify-between gap-3 rounded-lg border px-4 py-3 text-muted-foreground">
+      <div className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-muted-foreground">
         <span className="text-lg line-through">{label}</span>
         <span>No service</span>
       </div>
@@ -147,10 +150,10 @@ function ServiceDay({
     .filter((group) => group.roles.length > 0);
 
   return (
-    <details open={open} className="group rounded-lg border">
-      <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 px-4 py-3 text-lg font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+    <details open={open} className="group rounded-2xl border bg-card">
+      <summary className="font-heading flex min-h-14 cursor-pointer items-center justify-between gap-3 px-4 py-3 text-xl font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
         {label}
-        <span className="text-sm font-normal text-muted-foreground group-open:hidden">Show</span>
+        <span className="font-sans text-base font-normal text-muted-foreground group-open:hidden">Show</span>
       </summary>
       <div className="flex flex-col gap-4 border-t px-4 py-4">
         {groups.length === 0 ? (
@@ -173,7 +176,7 @@ function ServiceDay({
             <CopyButton
               variant="outline"
               size="lg"
-              className="w-full text-base sm:w-fit"
+              className="h-14 w-full text-lg"
               label="Copy for Messenger"
               what="schedule"
               text={scheduleText(service, label, names)}
