@@ -11,6 +11,7 @@ import { recordStat } from "@/lib/events/stats";
 export function CopyAnnouncement({ event, slug }: { event: AnnouncementEvent; slug: string }) {
   return (
     <CopyButton
+      variant="outline"
       size="lg"
       className="w-full text-base sm:w-fit"
       label="Copy announcement"

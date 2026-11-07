@@ -8,7 +8,7 @@ import { SiteHeader } from "@/components/site-header";
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader nav={false} />
       <nav aria-label="Admin" className="border-b bg-muted">
         <div className="mx-auto flex w-full max-w-2xl flex-wrap gap-x-3 px-4 py-2 text-sm font-medium sm:gap-x-6">
           {/* Each link shows a small spinner if its page is slow to load. */}

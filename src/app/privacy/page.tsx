@@ -4,6 +4,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { ChevronLeftIcon } from "lucide-react";
 import { InlinePending } from "@/components/link-pending";
+import { SectionHeading } from "@/components/section-heading";
 import { SiteHeader } from "@/components/site-header";
 import { getPrivacyContact } from "@/lib/events/public";
 
@@ -35,11 +36,11 @@ export default function PrivacyPage() {
           Prayer request form
           <InlinePending />
         </Link>
-        <h1 className="font-heading text-4xl font-bold tracking-tight">Privacy</h1>
+        <h1 className="font-heading text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">Privacy</h1>
 
-        <div className="flex flex-col gap-6 text-lg leading-relaxed">
-          <section className="flex flex-col gap-2">
-            <h2 className="text-2xl font-bold tracking-tight">Prayer requests</h2>
+        <div className="flex flex-col gap-10 text-lg leading-relaxed">
+          <section className="flex flex-col gap-3">
+            <SectionHeading className="text-2xl">Prayer requests</SectionHeading>
             <p>
               <strong>What we keep:</strong> your request, and your name and contact details if you
               choose to give them. You can stay anonymous.
@@ -60,8 +61,8 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          <section className="flex flex-col gap-2">
-            <h2 className="text-2xl font-bold tracking-tight">Asking for removal</h2>
+          <section className="flex flex-col gap-3">
+            <SectionHeading className="text-2xl">Asking for removal</SectionHeading>
             <p>
               To have your request removed or corrected, or to ask what we hold about you, contact{" "}
               <Suspense fallback={FALLBACK_CONTACT}>
@@ -71,8 +72,8 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          <section className="flex flex-col gap-2">
-            <h2 className="text-2xl font-bold tracking-tight">Visiting this site</h2>
+          <section className="flex flex-col gap-3">
+            <SectionHeading className="text-2xl">Visiting this site</SectionHeading>
             <p>
               We count how many times each event is opened, copied and shared, with no cookies and
               nothing that identifies you. To stop spam on the prayer form, we briefly keep a
