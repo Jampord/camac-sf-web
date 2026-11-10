@@ -17,13 +17,14 @@ vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/db", () => ({ db: { user: { findUnique: mocks.findUnique } } }));
 
-const { getAdmin, getMember, requireAdmin, requirePrayerTeam } = await import("./dal");
+const { getAdmin, getMember, requireAdmin, requirePeopleManager, requirePrayerTeam } = await import("./dal");
 
 const ADMIN = {
   id: "a1",
   email: "admin@example.com",
   name: "Admin",
   canViewPrayer: false,
+  canManagePeople: false,
   role: "ADMIN",
 };
 const MEMBER = { ...ADMIN, id: "m1", email: "member@example.com", role: "MEMBER" };
@@ -43,6 +44,7 @@ describe("getAdmin", () => {
       email: "admin@example.com",
       name: "Admin",
       canViewPrayer: false,
+      canManagePeople: false,
     });
   });
 
@@ -94,6 +96,23 @@ describe("requirePrayerTeam", () => {
   it("sends other admins back to admin home", async () => {
     signedInAs(ADMIN);
     await expect(requirePrayerTeam()).rejects.toHaveProperty("message", "redirect:/admin");
+  });
+});
+
+describe("requirePeopleManager", () => {
+  it("lets a people manager through, with or without prayer access", async () => {
+    signedInAs({ ...ADMIN, canManagePeople: true });
+    await expect(requirePeopleManager()).resolves.toMatchObject({ canManagePeople: true });
+  });
+
+  it("sends other admins back to the People page, even prayer-team ones", async () => {
+    signedInAs({ ...ADMIN, canViewPrayer: true });
+    await expect(requirePeopleManager()).rejects.toHaveProperty("message", "redirect:/admin/people");
+  });
+
+  it("keeps a member out even if canManagePeople were set", async () => {
+    signedInAs({ ...MEMBER, canManagePeople: true });
+    await expect(requirePeopleManager()).rejects.toHaveProperty("message", "redirect:/schedule");
   });
 });
 

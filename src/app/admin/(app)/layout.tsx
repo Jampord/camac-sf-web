@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
           {[
             ["/admin", "Events"],
             ["/admin/schedule", "Schedule"],
-            ["/admin/members", "Members"],
+            ["/admin/people", "People"],
             ["/admin/events/new", "New event"],
             ["/admin/events/deleted", "Recently deleted"],
           ].map(([href, label]) => (

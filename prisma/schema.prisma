@@ -34,13 +34,14 @@ enum PrayerStatus {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique // allowlist: admins from the seed script, members from admins
-  name          String?
-  role          Role // no default, so every new account states its access
-  canViewPrayer Boolean  @default(false) // seed/DB only, no UI
-  createdAt     DateTime @default(now())
-  events        Event[]
+  id              String   @id @default(cuid())
+  email           String   @unique // the allowlist, managed on /admin/people
+  name            String?
+  role            Role // no default, so every new account states its access
+  canViewPrayer   Boolean  @default(false) // admins only; granted by people managers
+  canManagePeople Boolean  @default(false) // admins only; the first one comes from the seed
+  createdAt       DateTime @default(now())
+  events          Event[]
 }
 
 model Ministry {
@@ -68,8 +69,8 @@ model Event {
   skipDates       DateTime[] // cancelled weekly occurrences
   ministryId      String? // null = Church-wide
   ministry        Ministry?   @relation(fields: [ministryId], references: [id])
-  createdById     String
-  createdBy       User        @relation(fields: [createdById], references: [id])
+  createdById     String? // null once the admin who created it is removed; never shown
+  createdBy       User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
   stats           EventStat[]
   publishedAt     DateTime? // null = draft
   cancelledAt     DateTime? // page stays, "Cancelled" banner

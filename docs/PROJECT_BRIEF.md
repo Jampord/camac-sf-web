@@ -46,8 +46,13 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 
 - Two roles: `ADMIN` and `MEMBER` (added Nov 2026 with the members' serving schedule, §6.8). `role` has no default, so every account states its access. Ministry-head accounts are Phase 2.
 - Only emails already in the `User` table can sign in (the table _is_ the allowlist). One shared sign-in page: admins land on the admin home, members on `/schedule`. Admin pages and actions send members to `/schedule`.
-- **Admins and `canViewPrayer` are set by seed script / DB only — no UI** for managing them. Prayer access is granted by the developer at the pastor's request, so no admin can grant it to themselves.
-- **Members are added and removed by admins** on `/admin/members` (email + optional name). That page can only create `MEMBER` accounts without prayer access, and only remove `MEMBER` accounts, so it can't make or remove an admin.
+- **Everyone is managed on the People page** (`/admin/people`, Nov 2026; before that, admins and prayer access were seed/DB only). Three sections (Prayer team, Admins, Members), an add form and per-person **Change** / **Remove**. The email can't be edited: remove and re-add. Runbook: `docs/ACCESS.md`.
+  - **Any admin** adds, renames and removes members.
+  - **People managers** (`canManagePeople`, e.g. the developer and the pastor) also add, change and remove admins and the prayer team, and can make others people managers. It's separate from prayer access, so the developer can manage people without reading prayer requests.
+  - **Safety rules:** nobody changes or removes their own access; the last people manager can't be demoted or removed (re-checked in a serializable transaction); every change is confirmed in a dialog that names the person and the new access.
+  - **Prayer team email:** when someone joins the prayer team, the whole team (newcomer included) gets "{name} was added to the prayer team by {name}" and a link, never a request. If it fails to send, the change still saves.
+  - **The seed only bootstraps:** while nobody can manage people, it makes `SEED_OWNER_EMAIL` an admin who can (without prayer access). After that it never touches accounts.
+- Removing an admin keeps their events; `Event.createdBy` becomes empty (it's never shown).
 - **Disclosure to leadership:** the developer has database access; commit to not reading prayer data.
 
 ## 5. Tech stack
@@ -197,13 +202,14 @@ enum StatType    { VIEW COPY SHARE }
 enum PrayerStatus{ NEW PRAYED ANSWERED }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique   // allowlist: admins from the seed script, members from admins
-  name          String?
-  role          Role               // no default: every account states its access
-  canViewPrayer Boolean  @default(false)   // seed/DB only, no UI
-  createdAt     DateTime @default(now())
-  events        Event[]
+  id              String   @id @default(cuid())
+  email           String   @unique   // the allowlist, managed on /admin/people
+  name            String?
+  role            Role               // no default: every account states its access
+  canViewPrayer   Boolean  @default(false)   // admins only; granted by people managers
+  canManagePeople Boolean  @default(false)   // admins only; the first one comes from the seed
+  createdAt       DateTime @default(now())
+  events          Event[]
 }
 
 model Ministry {
@@ -230,8 +236,8 @@ model Event {
   skipDates       DateTime[]                      // cancelled weekly occurrences
   ministryId      String?                         // null = Church-wide
   ministry        Ministry?  @relation(fields: [ministryId], references: [id])
-  createdById     String
-  createdBy       User       @relation(fields: [createdById], references: [id])
+  createdById     String?                         // null once that admin is removed; never shown
+  createdBy       User?      @relation(fields: [createdById], references: [id], onDelete: SetNull)
   stats           EventStat[]
   publishedAt     DateTime?                       // null = draft
   cancelledAt     DateTime?                       // page stays, "Cancelled" banner
@@ -308,6 +314,8 @@ No deadline — work top to bottom. If time gets tight, the metric-critical item
 **UI redesign (Nov 2026), done before step 6** so the user test runs on the UI that stays: Warm theme, landing page, agenda moved to `/events`, phone tab bar, event page reordered, poster viewer, prayer and privacy pages restyled (§6.2).
 
 **Serving schedule (Oct–Nov 2026), moved up from Phase 3** (§6.8): admin entry first, then member accounts, the members' `/schedule` page, Copy for Messenger and the 1-year retention. Member accounts go live only after leadership and the people being added are told, the `/privacy` page covers them, and the production Google OAuth app is "In production" (in "Testing", only listed test users can sign in). The members' view joins the user test in step 6.
+
+**Managing people from the app (Nov 2026):** the People page replaced seeding admins and prayer access by hand (§4, `docs/ACCESS.md`). Before it goes live, run the seed once on production with `SEED_OWNER_EMAIL` to create the first people manager.
 
 ## 9. Engineering & portfolio
 

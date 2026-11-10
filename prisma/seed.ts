@@ -1,12 +1,11 @@
-// Seeds ministries, the admin allowlist and the regular weekly services.
-// Admin emails come from env vars so no real addresses live in this public repo (brief §9).
+// Seeds ministries, the first people manager and the regular weekly services.
+// The email comes from an env var so no real address lives in this public repo (brief §9).
 //
-//   SEED_ADMIN_EMAILS="a@example.com,b@example.com"   -> admins
-//   SEED_PRAYER_EMAILS="b@example.com"                -> admins who can view prayer requests
+//   SEED_OWNER_EMAIL="you@example.com"   -> the first admin who can manage people
 //
-// Re-running is safe: everything is upserted. canViewPrayer is set from SEED_PRAYER_EMAILS on
-// every run, so removing an email there revokes prayer access. A member whose email is added
-// here becomes an admin. Members themselves are added by admins in the app, not here.
+// Everyone else is added on /admin/people, which is the source of truth for accounts. So the
+// seed only touches accounts while nobody can manage people (a fresh database); after that it
+// leaves them alone, and re-running it is safe.
 import "dotenv/config";
 import { createPrismaClient } from "../src/lib/prisma";
 import { parseEmailList } from "../src/lib/emails";
@@ -22,24 +21,35 @@ async function main() {
   }
   console.log(`Ministries: ${MINISTRIES.length}`);
 
-  const prayerEmails = new Set(parseEmailList(process.env.SEED_PRAYER_EMAILS));
-  const adminEmails = new Set([...parseEmailList(process.env.SEED_ADMIN_EMAILS), ...prayerEmails]);
-
-  if (adminEmails.size === 0) {
-    console.warn("No SEED_ADMIN_EMAILS set: nobody will be able to sign in.");
-  }
-
-  for (const email of adminEmails) {
-    const canViewPrayer = prayerEmails.has(email);
-    await prisma.user.upsert({
-      where: { email },
-      update: { role: "ADMIN", canViewPrayer },
-      create: { email, role: "ADMIN", canViewPrayer },
-    });
-  }
-  console.log(`Admins: ${adminEmails.size} (prayer team: ${prayerEmails.size})`);
-
+  await seedFirstPeopleManager();
   await seedRegularServices();
+}
+
+async function seedFirstPeopleManager() {
+  if (process.env.SEED_ADMIN_EMAILS || process.env.SEED_PRAYER_EMAILS) {
+    console.warn("SEED_ADMIN_EMAILS and SEED_PRAYER_EMAILS are no longer read: use /admin/people.");
+  }
+
+  if (await prisma.user.findFirst({ where: { canManagePeople: true } })) {
+    console.log("People: managed on /admin/people, so accounts were left alone.");
+    return;
+  }
+
+  const emails = parseEmailList(process.env.SEED_OWNER_EMAIL);
+  if (emails.length !== 1) {
+    console.warn("Nobody can manage people yet. Set SEED_OWNER_EMAIL to one email and re-run.");
+    return;
+  }
+
+  // Prayer access isn't part of this: whoever maintains the site doesn't read prayer requests
+  // (brief §4). An existing account keeps the prayer access it has.
+  const [email] = emails;
+  await prisma.user.upsert({
+    where: { email },
+    update: { role: "ADMIN", canManagePeople: true },
+    create: { email, role: "ADMIN", canManagePeople: true },
+  });
+  console.log("People: added the first people manager from SEED_OWNER_EMAIL.");
 }
 
 // The church's regular weekly services (brief §6.1). Created once, published, at the church,
@@ -51,14 +61,12 @@ const REGULAR_SERVICES = [
 ];
 
 async function seedRegularServices() {
+  // The creator is only a record (never shown), so the services don't wait for an admin.
   const creator = await prisma.user.findFirst({
     where: { role: "ADMIN" },
     orderBy: { createdAt: "asc" },
+    select: { id: true },
   });
-  if (!creator) {
-    console.warn("No admin yet, so the regular services weren't added. Set SEED_ADMIN_EMAILS.");
-    return;
-  }
 
   let created = 0;
   for (const service of REGULAR_SERVICES) {
@@ -75,7 +83,7 @@ async function seedRegularServices() {
         venue: "Church",
         atChurchVenue: true,
         publishedAt: new Date(),
-        createdById: creator.id,
+        createdById: creator?.id ?? null,
       },
     });
     created++;
