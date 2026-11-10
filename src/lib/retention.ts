@@ -7,6 +7,7 @@ import { PURGE_AFTER_DAYS } from "@/lib/events/status";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const ARCHIVE_PRAYERS_AFTER_DAYS = 60;
 const DELETE_PRAYERS_AFTER_DAYS = 365;
+const DELETE_SCHEDULE_AFTER_DAYS = 365;
 
 export function cleanupCutoffs(now: Date) {
   const ago = (ms: number) => new Date(now.getTime() - ms);
@@ -14,6 +15,8 @@ export function cleanupCutoffs(now: Date) {
     archivePrayersBefore: ago(ARCHIVE_PRAYERS_AFTER_DAYS * DAY_MS),
     deletePrayersBefore: ago(DELETE_PRAYERS_AFTER_DAYS * DAY_MS),
     purgeEventsDeletedBefore: ago(PURGE_AFTER_DAYS * DAY_MS),
+    // Volunteers' names are only needed while the schedule is current.
+    deleteScheduleBefore: ago(DELETE_SCHEDULE_AFTER_DAYS * DAY_MS),
     // Only the last hour counts toward the limit. Running daily, nothing lives past about a day.
     deleteRateLimitHitsBefore: ago(60 * 60 * 1000),
   };

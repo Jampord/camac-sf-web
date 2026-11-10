@@ -10,8 +10,10 @@ datasource db {
   provider = "postgresql"
 }
 
+// ADMIN: everything (seed/DB only). MEMBER: the serving schedule only (added by admins).
 enum Role {
   ADMIN
+  MEMBER
 }
 
 enum Recurrence {
@@ -33,9 +35,9 @@ enum PrayerStatus {
 
 model User {
   id            String   @id @default(cuid())
-  email         String   @unique // allowlist; set by seed script only
+  email         String   @unique // allowlist: admins from the seed script, members from admins
   name          String?
-  role          Role     @default(ADMIN)
+  role          Role // no default, so every new account states its access
   canViewPrayer Boolean  @default(false) // seed/DB only, no UI
   createdAt     DateTime @default(now())
   events        Event[]

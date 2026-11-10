@@ -5,7 +5,8 @@
 //   SEED_PRAYER_EMAILS="b@example.com"                -> admins who can view prayer requests
 //
 // Re-running is safe: everything is upserted. canViewPrayer is set from SEED_PRAYER_EMAILS on
-// every run, so removing an email there revokes prayer access.
+// every run, so removing an email there revokes prayer access. A member whose email is added
+// here becomes an admin. Members themselves are added by admins in the app, not here.
 import "dotenv/config";
 import { createPrismaClient } from "../src/lib/prisma";
 import { parseEmailList } from "../src/lib/emails";
@@ -32,8 +33,8 @@ async function main() {
     const canViewPrayer = prayerEmails.has(email);
     await prisma.user.upsert({
       where: { email },
-      update: { canViewPrayer },
-      create: { email, canViewPrayer },
+      update: { role: "ADMIN", canViewPrayer },
+      create: { email, role: "ADMIN", canViewPrayer },
     });
   }
   console.log(`Admins: ${adminEmails.size} (prayer team: ${prayerEmails.size})`);
@@ -50,7 +51,10 @@ const REGULAR_SERVICES = [
 ];
 
 async function seedRegularServices() {
-  const creator = await prisma.user.findFirst({ orderBy: { createdAt: "asc" } });
+  const creator = await prisma.user.findFirst({
+    where: { role: "ADMIN" },
+    orderBy: { createdAt: "asc" },
+  });
   if (!creator) {
     console.warn("No admin yet, so the regular services weren't added. Set SEED_ADMIN_EMAILS.");
     return;

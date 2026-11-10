@@ -37,15 +37,17 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 
 ## 4. Users & access
 
-| User                                                                                  | Logs in?                                  | Can do                                                                                                             |
-| ------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Member / visitor                                                                      | **No**                                    | View public calendar & event pages, share/copy announcements, add events to their calendar, submit prayer requests |
-| Admin (2–4 people — at least the announcements volunteer, plus e.g. pastor/secretary) | **Yes** — Google sign-in, email allowlist | Create/edit/publish/cancel/delete events, see open counts                                                          |
-| Admin with `canViewPrayer` (prayer team)                                              | **Yes**                                   | All admin actions + read/manage prayer requests                                                                    |
+| User                                                                                  | Logs in?                                  | Can do                                                                                                                        |
+| ------------------------------------------------------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Anyone (visitors and the congregation)                                                | **No**                                    | View the landing page, calendar & event pages, share/copy announcements, add events to their calendar, submit prayer requests |
+| Schedule member (`MEMBER`: serving volunteers, added by admins)                       | **Yes** — Google sign-in, email allowlist | See the serving schedule for the next 8 weeks and copy a week for Messenger. No admin pages                                   |
+| Admin (2–4 people — at least the announcements volunteer, plus e.g. pastor/secretary) | **Yes** — Google sign-in, email allowlist | Create/edit/publish/cancel/delete events, see open counts, edit the serving schedule, add/remove schedule members             |
+| Admin with `canViewPrayer` (prayer team)                                              | **Yes**                                   | All admin actions + read/manage prayer requests                                                                               |
 
-- Single role (`admin`) in the MVP. Ministry-head accounts are Phase 2.
-- Only emails already in the `User` table can sign in (the table _is_ the allowlist).
+- Two roles: `ADMIN` and `MEMBER` (added Nov 2026 with the members' serving schedule, §6.8). `role` has no default, so every account states its access. Ministry-head accounts are Phase 2.
+- Only emails already in the `User` table can sign in (the table _is_ the allowlist). One shared sign-in page: admins land on the admin home, members on `/schedule`. Admin pages and actions send members to `/schedule`.
 - **Admins and `canViewPrayer` are set by seed script / DB only — no UI** for managing them. Prayer access is granted by the developer at the pastor's request, so no admin can grant it to themselves.
+- **Members are added and removed by admins** on `/admin/members` (email + optional name). That page can only create `MEMBER` accounts without prayer access, and only remove `MEMBER` accounts, so it can't make or remove an admin.
 - **Disclosure to leadership:** the developer has database access; commit to not reading prayer data.
 
 ## 5. Tech stack
@@ -56,7 +58,7 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 - **Auth:** Auth.js (NextAuth) — Google provider, allowlist check in `signIn` callback
 - **Hosting:** Vercel **Hobby** (free), `*.vercel.app` domain first; church domain later. **Keep the code host-agnostic** — avoid Vercel-only APIs where reasonable, so moving hosts stays cheap (see §5.1).
 - **Image storage:** **Cloudinary** (free tier) for posters — host-independent, resizes/crops by URL for thumbnails and share cards. Uploads capped at **~5 MB, JPG/PNG/WebP**, admin-only signed uploads.
-- **Scheduled jobs:** Vercel Cron (prayer request retention, soft-delete purge, rate-limit cleanup)
+- **Scheduled jobs:** Vercel Cron (prayer request and serving schedule retention, soft-delete purge, rate-limit cleanup)
 - **Share images:** Next.js `ImageResponse` / `opengraph-image` routes
 - **QR codes:** a QR library (e.g. `qrcode`) rendered server-side
 - **Email (prayer notifications):** **Gmail SMTP with an app password from a dedicated Gmail account** (not a personal inbox). ⏰ **When the church gets a domain, switch to a proper transactional email provider with a verified domain.**
@@ -176,19 +178,29 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 - **Status:** `NEW → PRAYED → ANSWERED`, updated by the prayer team.
 - **Retention (daily cron):** auto-archive after **60 days**; auto-delete after **1 year** unless marked `keepAsTestimony`.
 
+### 6.8 Serving schedule _(moved from Phase 3 into the MVP, Oct–Nov 2026)_
+
+A small first step toward the Phase 3 serving roster: who serves at the **regular services** (Sunday Service, Prayer Meeting), replacing the list that goes around on Messenger. Swaps still happen by messaging each other; the app doesn't manage them.
+
+- **Roles live in code** (`src/lib/schedule/roles.ts`), grouped per service (e.g. Music Team, Sunday School, After service). They rarely change, so there's no UI for them.
+- **Admin entry** (`/admin/schedule`): one free-text names field per role per date, for the coming weeks. **Names only, not linked to accounts**, and a field may hold several names. Dates follow the seeded weekly event, so its skip dates show as "No service".
+- **Members' view** (`/schedule`): the next **8 weeks**, each date folded open on tap, with **Copy for Messenger** for that week. The link can be shared openly; names show only after Google sign-in by someone on the list (members and admins). Not a tab (§6.2); the landing page links to it.
+- **Privacy:** volunteers' names are visible only to signed-in members and admins. Members' Google emails are stored for sign-in; nothing else from the Google profile is saved. `/privacy` covers both.
+- **Retention (daily cron):** schedule entries are deleted **1 year** after their date. Member accounts stay until an admin removes them.
+
 ## 7. Data model sketch
 
 ```prisma
-enum Role        { ADMIN }
+enum Role        { ADMIN MEMBER }   // MEMBER: the serving schedule only
 enum Recurrence  { NONE WEEKLY }
 enum StatType    { VIEW COPY SHARE }
 enum PrayerStatus{ NEW PRAYED ANSWERED }
 
 model User {
   id            String   @id @default(cuid())
-  email         String   @unique   // allowlist; set by seed script only
+  email         String   @unique   // allowlist: admins from the seed script, members from admins
   name          String?
-  role          Role     @default(ADMIN)
+  role          Role               // no default: every account states its access
   canViewPrayer Boolean  @default(false)   // seed/DB only, no UI
   createdAt     DateTime @default(now())
   events        Event[]
@@ -251,6 +263,15 @@ model PrayerRequest {
   createdAt       DateTime     @default(now())
 }
 
+model ServingAssignment {
+  id        String   @id @default(cuid())
+  date      DateTime   // Manila midnight of the service date, like Event.skipDates
+  role      String     // a key from src/lib/schedule/roles.ts
+  names     String     // free text, not linked to accounts; may hold several names
+  updatedAt DateTime @updatedAt
+  @@unique([date, role])
+}
+
 model RateLimitHit {
   id        String   @id @default(cuid())
   ipHash    String
@@ -285,6 +306,8 @@ No deadline — work top to bottom. If time gets tight, the metric-critical item
 | **7** | Prayer requests: form + privacy notice + /privacy page, honeypot + rate limit, prayer-team inbox, status workflow, email notifications, retention cron; soft-delete purge cron                                                                                                                  |
 
 **UI redesign (Nov 2026), done before step 6** so the user test runs on the UI that stays: Warm theme, landing page, agenda moved to `/events`, phone tab bar, event page reordered, poster viewer, prayer and privacy pages restyled (§6.2).
+
+**Serving schedule (Oct–Nov 2026), moved up from Phase 3** (§6.8): admin entry first, then member accounts, the members' `/schedule` page, Copy for Messenger and the 1-year retention. Member accounts go live only after leadership and the people being added are told, the `/privacy` page covers them, and the production Google OAuth app is "In production" (in "Testing", only listed test users can sign in). The members' view joins the user test in step 6.
 
 ## 9. Engineering & portfolio
 
@@ -326,7 +349,7 @@ Candidate scope (to decide with the treasurer before Phase 2 starts):
 
 - **Sermon archive** — sermons are already recorded and posted on **YouTube**. A volunteer admin pastes the YouTube link and enters **title, speaker, Bible passage, series name**; the page embeds the video. (Automatic playlist import is a possible later upgrade.)
 - **Past events photos** — no separate gallery. A dedicated member already posts photos to the Facebook page, so past events get a **"Photos" link to the Facebook album** (`photosUrl` field), shown in the Past events list.
-- **Serving roster** — roles: Music, ushers, Sunday School teachers/assistants, prayer meeting in-charge, Sunday service schedule, post-service cleanup, setup/restoration, dishwashers. Today: a list exists; swaps happen by reaching out to whoever is available; reminders go out at Sunday service and on Messenger; **last-minute swaps** are the main issue. Introduces a **names-only `Person`** table.
+- **Serving roster** — roles: Music, ushers, Sunday School teachers/assistants, prayer meeting in-charge, Sunday service schedule, post-service cleanup, setup/restoration, dishwashers. Today: a list exists; swaps happen by reaching out to whoever is available; reminders go out at Sunday service and on Messenger; **last-minute swaps** are the main issue. Introduces a **names-only `Person`** table. _The first part is in the MVP (§6.8): the regular services' schedule, with free-text names. Still Phase 3: a `Person` table, other roles and events, and help with swaps._
 
 ### Phase 4 — People
 

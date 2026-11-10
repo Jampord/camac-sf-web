@@ -10,7 +10,8 @@ import { getPrivacyContact } from "@/lib/events/public";
 
 export const metadata: Metadata = {
   title: "Privacy",
-  description: "How CAMAC - San Fernando handles prayer requests and visits to this site.",
+  description:
+    "How CAMAC - San Fernando handles prayer requests, the serving schedule and visits to this site.",
 };
 
 const FALLBACK_CONTACT = "any church leader at a Sunday service";
@@ -62,9 +63,30 @@ export default function PrivacyPage() {
           </section>
 
           <section className="flex flex-col gap-3">
+            <SectionHeading className="text-2xl">Serving schedule</SectionHeading>
+            <p>
+              <strong>What we keep:</strong> the names an admin enters for each serving role, and
+              for each member who can see the schedule, their Google email address and the name an
+              admin gave them.
+            </p>
+            <p>
+              <strong>Who can see it:</strong> only members and admins, after signing in with
+              Google. The schedule isn&apos;t public. Signing in only checks that your email is on
+              the list; we don&apos;t save anything else from your Google account. A cookie keeps
+              you signed in on that device for up to 30 days, or until you sign out.
+            </p>
+            <p>
+              <strong>How long we keep it:</strong> each week&apos;s schedule is deleted
+              automatically a year after its date. Your email stays on the member list until an
+              admin removes it.
+            </p>
+          </section>
+
+          <section className="flex flex-col gap-3">
             <SectionHeading className="text-2xl">Asking for removal</SectionHeading>
             <p>
-              To have your request removed or corrected, or to ask what we hold about you, contact{" "}
+              To have your request removed or corrected, to be taken off the schedule or the member
+              list, or to ask what we hold about you, contact{" "}
               <Suspense fallback={FALLBACK_CONTACT}>
                 <ContactName />
               </Suspense>
