@@ -11,6 +11,8 @@ export type Admin = {
   email: string;
   name: string | null;
   canViewPrayer: boolean;
+  /** Can add, change and remove admins and the prayer team, not just members. */
+  canManagePeople: boolean;
 };
 
 type SignedInUser = Admin & { role: Role };
@@ -30,7 +32,7 @@ async function getSignedInUser(): Promise<SignedInUser | null> {
 
   return db.user.findUnique({
     where: { email: normalizeEmail(email) },
-    select: { id: true, email: true, name: true, canViewPrayer: true, role: true },
+    select: { id: true, email: true, name: true, canViewPrayer: true, canManagePeople: true, role: true },
   });
 }
 
@@ -57,12 +59,19 @@ export async function getMember(): Promise<Member | null> {
   return { name: user.name, email: user.email, isAdmin: user.role === "ADMIN" };
 }
 
-function asAdmin({ id, email, name, canViewPrayer }: SignedInUser): Admin {
-  return { id, email, name, canViewPrayer };
+function asAdmin({ id, email, name, canViewPrayer, canManagePeople }: SignedInUser): Admin {
+  return { id, email, name, canViewPrayer, canManagePeople };
 }
 
 export async function requirePrayerTeam(): Promise<Admin> {
   const admin = await requireAdmin();
   if (!admin.canViewPrayer) redirect("/admin");
+  return admin;
+}
+
+/** For changes to admins and the prayer team. Any admin can still add and remove members. */
+export async function requirePeopleManager(): Promise<Admin> {
+  const admin = await requireAdmin();
+  if (!admin.canManagePeople) redirect("/admin/people");
   return admin;
 }
