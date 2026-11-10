@@ -10,7 +10,7 @@ group chat). Every event link unfurls into a rich preview card.
 
 ## What it does
 
-**For members (no login)**
+**For everyone (no login)**
 
 - **Landing page:** the service times up front ("Sundays at 9:00 AM"), the next few special
   events, a short about section with what to expect on a first Sunday, and how to visit or message
@@ -35,6 +35,11 @@ group chat). Every event link unfurls into a rich preview card.
 - **Prayer requests:** a public form (anonymous allowed) with a privacy notice and `/privacy` page,
   protected by a honeypot and a loose per-IP rate limit.
 
+**For serving volunteers (Google sign-in, added by an admin)**
+
+- **Serving schedule** at `/schedule`: who serves in each role for the next 8 weeks, with
+  **Copy for Messenger** for a week. Names only show after sign-in; members can't reach admin pages.
+
 **For admins (Google sign-in, allowlist only)**
 
 - Create events as drafts, then publish, edit, cancel (with a note), delete and restore within 30
@@ -43,18 +48,19 @@ group chat). Every event link unfurls into a rich preview card.
   are recorded; bots and signed-in admins aren't counted.
 - **Prayer team only:** an inbox with a New → Prayed → Answered workflow. The team gets an email
   saying only "New prayer request" and a link, never the request itself.
-- **Serving schedule:** enter who serves in each role for upcoming services.
+- **Serving schedule:** enter who serves in each role for upcoming services, and add or remove the
+  members who can see it.
 
 **In the background:** a daily cron archives prayer requests after 60 days, deletes them after a
-year (unless kept as a testimony), purges events deleted over 30 days ago and clears rate-limit
-records.
+year (unless kept as a testimony), deletes serving schedule entries a year after their date,
+purges events deleted over 30 days ago and clears rate-limit records.
 
 ## Stack
 
 - **Next.js 16** (App Router, Cache Components, Partial Prefetching) + TypeScript + Tailwind CSS 4
   + shadcn/ui
 - **Postgres on Neon** via **Prisma 7** (`pg` driver adapter: host-agnostic)
-- **Auth.js v5**: Google sign-in for admins, allowlisted by the `User` table
+- **Auth.js v5**: Google sign-in for admins and schedule members, allowlisted by the `User` table
 - **Cloudinary** for posters (signed, admin-only uploads), **Nodemailer** over Gmail SMTP for
   prayer notifications, **qrcode** for QR codes, **Sentry** for server-side error tracking
 - **Atkinson Hyperlegible Next** for text (designed for low-vision readers) and **Literata** for
@@ -104,8 +110,8 @@ prisma/schema.prisma      data model (brief §7)
 prisma/seed.ts            ministries, admin allowlist and weekly services
 src/auth.ts               Auth.js config (Google, allowlist check)
 src/app/                  public routes: landing page, events (the agenda) and events/[slug]
-                          (+ share card, .ics, QR), past, prayer, privacy
-src/app/admin/(app)/      admin pages: events, prayer inbox, serving schedule
+                          (+ share card, .ics, QR), past, prayer, privacy, schedule (members)
+src/app/admin/(app)/      admin pages: events, prayer inbox, serving schedule, members
 src/app/api/              Auth.js, the daily cron, and the open/copy/share counter
 src/components/           shared UI (shadcn primitives in ui/)
 src/lib/church.ts         the landing page's own words and the church's Facebook links
@@ -137,8 +143,8 @@ e2e/                      Playwright tests
 - [ ] **6** Pre-launch user test → start the 4-week measurement window
 - [x] **7** Prayer requests + retention/purge crons
 
-Also live: venue addresses with Maps links, server-side error tracking, and the admin side of the
-serving schedule (the members' view comes after the user test).
+Also built: venue addresses with Maps links, server-side error tracking, and the serving schedule
+(admin entry is live; the members' view goes live after the user test).
 
 ## Success metric
 
