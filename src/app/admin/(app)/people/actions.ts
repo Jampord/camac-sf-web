@@ -1,12 +1,15 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { headers } from "next/headers";
+import { after } from "next/server";
 import { Prisma } from "@/generated/prisma/client";
-import { requireAdmin, requirePeopleManager } from "@/lib/dal";
+import { requireAdmin, requirePeopleManager, type Admin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { ACCESS_INFO, accessColumns, accessOf } from "@/lib/people/access";
 import { parseAccessForm, parsePersonForm, type AccessInput, type PersonField } from "@/lib/people/input";
 import { changeProblem, LAST_MANAGER } from "@/lib/people/rules";
+import { notifyPrayerTeamChange } from "@/lib/prayer/notify";
 
 // Any admin can add, rename and remove members. Anything touching admins or the prayer team
 // needs "can manage people", and nobody changes their own access (brief §4, src/lib/people/
@@ -20,7 +23,7 @@ export type PersonFormState = {
 };
 
 export async function addPerson(_prev: PersonFormState, formData: FormData): Promise<PersonFormState> {
-  await requireAdmin();
+  const viewer = await requireAdmin();
 
   const values = {
     email: String(formData.get("email") ?? ""),
@@ -46,6 +49,7 @@ export async function addPerson(_prev: PersonFormState, formData: FormData): Pro
     }
     throw error;
   }
+  if (access === "prayer") await tellPrayerTeam(name ?? email, viewer);
   refresh();
   return { added: `${email} as ${ACCESS_INFO[access].label}` };
 }
@@ -69,8 +73,10 @@ export async function updatePerson(id: string, formData: FormData): Promise<Chan
   const parsed = parseAccessForm(formData);
   if (!parsed.ok) return { ok: false, errors: parsed.errors };
   const { name, access, canManagePeople } = parsed.data;
+  // Set inside the transaction when this change puts them on the prayer team.
+  const joined = { prayerTeam: "" };
 
-  return guarded(async (tx) => {
+  const result = await guarded(async (tx) => {
     const target = await tx.user.findUnique({ where: { id }, select: { email: true, role: true, canViewPrayer: true } });
     if (!target) throw new Refused(GONE);
     const problem = changeProblem(viewer, { id, access: accessOf(target) }, access);
@@ -78,8 +84,22 @@ export async function updatePerson(id: string, formData: FormData): Promise<Chan
 
     await tx.user.update({ where: { id }, data: { name, ...accessColumns(access, canManagePeople) } });
     await keepAPeopleManager(tx);
+    if (access === "prayer" && accessOf(target) !== "prayer") joined.prayerTeam = name ?? target.email;
     return `Saved: ${name ?? target.email} is ${an(ACCESS_INFO[access].label)}.`;
   });
+
+  if (result.ok && joined.prayerTeam) await tellPrayerTeam(joined.prayerTeam, viewer);
+  return result;
+}
+
+/**
+ * Emails the whole prayer team, newcomer included, that someone joined (brief §4). Sent after
+ * the response, so a slow or failing Gmail never holds up or undoes the change.
+ */
+async function tellPrayerTeam(newcomer: string, addedBy: Admin) {
+  const requestHeaders = await headers();
+  const origin = `${requestHeaders.get("x-forwarded-proto") ?? "https"}://${requestHeaders.get("host")}`;
+  after(() => notifyPrayerTeamChange(newcomer, addedBy.name ?? addedBy.email, `${origin}/admin/prayer`));
 }
 
 /** Removes anyone the rules allow. Their events stay, with no creator recorded. */
