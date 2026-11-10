@@ -12,7 +12,10 @@ export default function SignInPage({ searchParams }: PageProps<"/admin/sign-in">
       <Image src="/camac-mark.png" alt="" width={447} height={418} priority className="h-20 w-auto self-start" />
       <div className="flex flex-col gap-2">
         <h1 className="font-heading text-3xl font-bold tracking-tight">Admin sign-in</h1>
-        <p className="text-muted-foreground">For church admins managing events.</p>
+        {/* Members sign in here too (they're sent on to /schedule), so the line welcomes both. */}
+        <p className="text-muted-foreground">
+          For church admins, and for serving volunteers checking the schedule.
+        </p>
       </div>
       <Suspense>
         <SignInError searchParams={searchParams} />
