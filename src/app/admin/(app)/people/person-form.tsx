@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { toast } from "sonner";
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -13,7 +14,12 @@ import { addPerson, type PersonFormState } from "./actions";
 
 /** `canManagePeople` is the viewer's: without it, the form only adds members. */
 export function PersonForm({ canManagePeople }: { canManagePeople: boolean }) {
-  const [state, formAction, pending] = useActionState<PersonFormState, FormData>(addPerson, {});
+  const [state, formAction, pending] = useActionState<PersonFormState, FormData>(async (prev, formData) => {
+    const next = await addPerson(prev, formData);
+    // A toast, like Change and Remove: a line under the form would go stale after other changes.
+    if (next.added) toast.success(`Added ${next.added}.`);
+    return next;
+  }, {});
 
   return (
     // Remount after each submit: empty after an add, refilled with what was sent after an error.
@@ -86,12 +92,6 @@ function PersonFields({
           />
         )}
       </FieldGroup>
-
-      {state.added && !pending && (
-        <p role="status" className="text-lg font-medium">
-          Added {state.added}.
-        </p>
-      )}
 
       <Button type="submit" size="lg" disabled={pending || !hydrated} className="w-full text-base sm:w-fit">
         {pending && <Spinner />}
