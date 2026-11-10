@@ -3,12 +3,12 @@
 import { useActionState, useState } from "react";
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { ACCESS_INFO, ACCESS_LEVELS } from "@/lib/people/access";
+import { ACCESS_LEVELS, type Access } from "@/lib/people/access";
 import { NAME_MAX, type PersonField } from "@/lib/people/input";
 import { useHydrated } from "@/lib/use-hydrated";
+import { AccessChoice } from "./access-choice";
 import { addPerson, type PersonFormState } from "./actions";
 
 /** `canManagePeople` is the viewer's: without it, the form only adds members. */
@@ -40,7 +40,7 @@ function PersonFields({
 }) {
   const hydrated = useHydrated();
   // Shows the people-manager checkbox only for admin levels, where it applies.
-  const [access, setAccess] = useState(state.values?.access ?? "member");
+  const [access, setAccess] = useState<Access>(asAccess(state.values?.access));
   const error = (field: PersonField) => state.errors?.[field];
   // aria-invalid styles the control red; FieldError shows the message under it.
   const invalid = (field: PersonField) => (error(field) ? true : undefined);
@@ -78,43 +78,12 @@ function PersonFields({
         </Field>
 
         {canManagePeople && (
-          <fieldset className="flex flex-col gap-2">
-            <legend className="mb-2 text-sm font-medium">What can they do?</legend>
-            {ACCESS_LEVELS.map((level) => (
-              <label
-                key={level}
-                className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card p-4 has-checked:border-primary has-checked:bg-accent has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
-              >
-                <input
-                  type="radio"
-                  name="access"
-                  value={level}
-                  checked={access === level}
-                  onChange={() => setAccess(level)}
-                  className="mt-1 size-4 accent-primary"
-                />
-                <span className="flex flex-col gap-0.5">
-                  <span className="font-semibold">{ACCESS_INFO[level].label}</span>
-                  <span className="text-sm text-muted-foreground">{ACCESS_INFO[level].description}</span>
-                </span>
-              </label>
-            ))}
-            <FieldError>{error("access")}</FieldError>
-          </fieldset>
-        )}
-
-        {canManagePeople && access !== "member" && (
-          <Field orientation="horizontal">
-            <Checkbox
-              id="canManagePeople"
-              name="canManagePeople"
-              defaultChecked={state.values?.canManagePeople}
-            />
-            {/* Base UI names its checkbox via aria-labelledby="<id>-label", so the label needs that id. */}
-            <FieldLabel htmlFor="canManagePeople" id="canManagePeople-label" className="font-normal">
-              Can manage people: add, change and remove admins and the prayer team
-            </FieldLabel>
-          </Field>
+          <AccessChoice
+            access={access}
+            onAccessChange={setAccess}
+            defaultCanManagePeople={state.values?.canManagePeople}
+            error={error("access")}
+          />
         )}
       </FieldGroup>
 
@@ -130,4 +99,8 @@ function PersonFields({
       </Button>
     </form>
   );
+}
+
+function asAccess(value: string | undefined): Access {
+  return ACCESS_LEVELS.find((level) => level === value) ?? "member";
 }

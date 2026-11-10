@@ -9,13 +9,8 @@ import { ACCESS_LEVELS } from "./access";
 
 export const NAME_MAX = 120;
 
-const schema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, "Enter the email they use for Google.")
-    .pipe(z.email("That doesn't look like an email address."))
-    .transform(normalizeEmail),
+// Name and access are shared with the Change access form; the email can't be changed there.
+const accessSchema = z.object({
   name: z
     .string()
     .trim()
@@ -30,6 +25,15 @@ const schema = z.object({
     .transform((value) => value === "on"),
 });
 
+const schema = accessSchema.extend({
+  email: z
+    .string()
+    .trim()
+    .min(1, "Enter the email they use for Google.")
+    .pipe(z.email("That doesn't look like an email address."))
+    .transform(normalizeEmail),
+});
+
 export type PersonInput = z.output<typeof schema>;
 export type PersonField = keyof PersonInput;
 
@@ -38,17 +42,31 @@ export type ParsedPerson =
   | { ok: false; errors: Partial<Record<PersonField, string>> };
 
 export function parsePersonForm(formData: FormData): ParsedPerson {
+  return parse(schema, formData);
+}
+
+export type AccessInput = z.output<typeof accessSchema>;
+export type ParsedAccess =
+  | { ok: true; data: AccessInput }
+  | { ok: false; errors: Partial<Record<keyof AccessInput, string>> };
+
+/** The Change access form: name, access level and the people-manager checkbox. */
+export function parseAccessForm(formData: FormData): ParsedAccess {
+  return parse(accessSchema, formData);
+}
+
+function parse<S extends typeof accessSchema | typeof schema>(target: S, formData: FormData) {
   const text = (key: string) => {
     const value = formData.get(key);
     return typeof value === "string" ? value : undefined;
   };
-  const result = schema.safeParse({
+  const result = target.safeParse({
     email: text("email") ?? "",
     name: text("name"),
     access: text("access"),
     canManagePeople: text("canManagePeople"),
   });
-  if (result.success) return { ok: true, data: result.data };
+  if (result.success) return { ok: true as const, data: result.data as z.output<S> };
 
   const errors: Partial<Record<PersonField, string>> = {};
   for (const issue of result.error.issues) {
@@ -56,5 +74,5 @@ export function parsePersonForm(formData: FormData): ParsedPerson {
     // Keep the first message per field.
     errors[field] ??= issue.message;
   }
-  return { ok: false, errors };
+  return { ok: false as const, errors };
 }

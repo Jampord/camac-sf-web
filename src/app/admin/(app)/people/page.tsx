@@ -5,9 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { requireAdmin, type Admin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { accessOf, type Access } from "@/lib/people/access";
+import { changeProblem } from "@/lib/people/rules";
 import { formatManila } from "@/lib/time";
 import { PersonForm } from "./person-form";
-import { RemoveButton } from "./remove-button";
+import { PersonActions } from "./person-actions";
 
 export const metadata: Metadata = { title: "People" };
 
@@ -90,7 +91,7 @@ function PersonList({ people, viewer, empty }: { people: Person[]; viewer: Admin
   return (
     <ul className="flex flex-col divide-y border-y">
       {people.map((person) => (
-        <li key={person.id} className="flex items-center gap-4 py-3">
+        <li key={person.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <p className="flex flex-wrap items-center gap-2 font-semibold">
               <span className="truncate">{person.name ?? person.email}</span>
@@ -102,8 +103,10 @@ function PersonList({ people, viewer, empty }: { people: Person[]; viewer: Admin
               Added {formatManila(person.createdAt, { month: "short", day: "numeric", year: "numeric" })}
             </p>
           </div>
-          {/* Changing admins and the prayer team comes with the Change access button. */}
-          {person.access === "member" && <RemoveButton id={person.id} label={person.name ?? person.email} />}
+          {/* Only where the rules allow: never on your own row; admins' rows only for people managers. */}
+          {changeProblem(viewer, person) === null && (
+            <PersonActions person={person} viewerCanManagePeople={viewer.canManagePeople} />
+          )}
         </li>
       ))}
     </ul>

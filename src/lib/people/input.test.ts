@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NAME_MAX, parsePersonForm } from "./input";
+import { NAME_MAX, parseAccessForm, parsePersonForm } from "./input";
 
 function form(values: Record<string, string>) {
   const data = new FormData();
@@ -65,5 +65,13 @@ describe("parsePersonForm", () => {
       ok: false,
       errors: { access: "Choose what they can do." },
     });
+  });
+});
+
+describe("parseAccessForm", () => {
+  it("reads name and access, and ignores an email (it can't be changed)", () => {
+    expect(
+      parseAccessForm(form({ email: "new@example.com", name: " Ana ", access: "admin", canManagePeople: "on" })),
+    ).toEqual({ ok: true, data: { name: "Ana", access: "admin", canManagePeople: true } });
   });
 });
