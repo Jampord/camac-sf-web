@@ -368,10 +368,11 @@ Candidate scope (to decide with the treasurer before Phase 2 starts):
   - Output: a weekly **"Celebrants this week"** share card (today celebrants are announced on Sunday and posted on the page).
   - Members are aware birthdays are posted; anyone can ask to be left off.
 - **Public prayer wall** (uses the `shareConsent` already collected), **push/SMS reminders**.
+  - Build the wall only if members ask for it. Prayer meeting requests already work as a copy-and-add list in the group chat (see "Explicitly not planned"), and the wall would be the same idea on the site.
 
 ### Explicitly not planned (for now)
 
-Facebook auto-posting via Graph API, RSVP, booking request/approval flow, venue overlap checks, a separate photo gallery, a month-grid calendar, per-occurrence overrides for recurring events, Tagalog UI, attendance tracking, member directory.
+Facebook auto-posting via Graph API, RSVP, booking request/approval flow, venue overlap checks, a separate photo gallery, a month-grid calendar, per-occurrence overrides for recurring events, Tagalog UI, attendance tracking, member directory, a prayer meeting request list (decided 2026-11-10: the group chat's copy-and-add list already works and nobody finds it painful).
 
 ## 11. Leadership sign-off
 
