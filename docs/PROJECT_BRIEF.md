@@ -70,11 +70,12 @@ The MVP first had a success metric: over 4 weeks, at least 8 events shared, aver
 - **Time zone:** store UTC, display in `Asia/Manila`. Admin date/time inputs are interpreted as Manila time.
 - **Accounts:** Vercel, Neon, Google OAuth client, Cloudinary and Gmail are under the builder's personal accounts.
 
-### 5.1 Hosting terms (checked Oct 2026)
+### 5.1 Hosting terms (checked Oct 2026, rechecked 2026-11-23)
 
-- Vercel Hobby is limited to **non-commercial personal use**. The MVP (volunteer-built, no money involved) fits.
-- Vercel's current fair-use page lists **asking for donations as commercial use** (an earlier version said the opposite). The Phase 2 **giving QR** would fall under this.
-- **Before building any giving feature:** email Vercel support for a written answer. If they don't clearly approve, **drop the giving QR**, or move hosting first.
+- Vercel's [Terms](https://vercel.com/legal/terms) (updated Oct 19, 2026, §4) limit Hobby to **personal or non-commercial use**, without defining it. The MVP (volunteer-built, no money involved) fits.
+- The [fair-use page](https://vercel.com/docs/limits/fair-use-guidelines) in Oct 2026 listed **asking for donations as commercial use**. The Nov 12, 2026 version no longer mentions commercial use or donations. Its "never fair use" list is proxies, scrapers, crypto mining, hot-linked media and unauthorized load or penetration testing.
+- **Hobby has no email support** ([Hobby plan](https://vercel.com/docs/plans/hobby)). For a written answer, use the sales contact form (vercel.com/contact/sales). Ask about both the treasurer's records tool and the giving QR.
+- **Before building any giving feature:** get that written answer. If it doesn't clearly approve the giving QR, **drop it**, or move hosting first.
 - Vercel may remove Hobby deployments without notice — another reason to stay host-agnostic.
 
 ## 6. MVP features
@@ -349,7 +350,7 @@ Candidate scope (to decide with the treasurer before Phase 2 starts):
 
 **Ministry-head accounts:** ministry heads post events for their own ministry **directly, no review**, and can delete them (soft delete, so mistakes are recoverable).
 
-**Also:** "This week at church" digest page + share card. **Giving QR (display only) — only if Vercel support confirms in writing that it's allowed on Hobby (§5.1); otherwise dropped or deferred until hosting moves.**
+**Also:** "This week at church" digest page + share card. **Giving QR (display only) — only if Vercel confirms in writing that it's allowed on Hobby (§5.1); otherwise dropped or deferred until hosting moves.**
 
 ### Phase 3 — Content & serving
 
@@ -387,5 +388,5 @@ Facebook auto-posting via Graph API, RSVP, booking request/approval flow, venue 
 - [x] **2–3 recent announcement posts** from the volunteer, to base the copy-announcement template on.
 - [ ] Day, time and venue for **Sunday service, prayer meeting and Bible study** (seed data). Sunday service and prayer meeting are seeded; Bible study is still to come.
 - [x] A dedicated Gmail account + app password for notifications.
-- [ ] Email Vercel support about the giving QR (needed before Phase 2, not before the MVP).
+- [ ] Ask Vercel in writing (sales contact form; Hobby has no email support) whether the treasurer's records tool and the giving QR are allowed on Hobby (needed before Phase 2, not before the MVP).
 - [x] Church contact name for the /privacy page.
