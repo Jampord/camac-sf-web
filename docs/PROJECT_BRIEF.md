@@ -25,15 +25,13 @@ A solo, portfolio-grade full-stack web app for **CAMAC - San Fernando** (~50+ we
 - **Facebook page:** keep the poster **photo post**, with the event link in the caption. (A photo post doesn't render a link preview; the caption link is what matters here.)
 - **Messenger GC:** paste the **copied announcement**, which includes the link and shows the rich preview. The share card matters most here.
 
-## 3. Success metric (MVP)
+## 3. Usage (no success metric)
 
-Measured over **4 weeks**, starting on a date an admin sets once admins begin using the app (after the pre-launch user test, §8 step 6):
+The MVP first had a success metric: over 4 weeks, at least 8 events shared, averaging 15+ opens each. **Dropped on 2026-11-23:** the app is judged by whether the volunteer and members keep using it, not by a target, and Phase 2 doesn't wait for a measurement window.
 
-> **At least 8 events shared, averaging 15+ opens each.**
-
-- **Counts toward the 8:** one-off, published events with ≥1 open in the window. **Recurring series are excluded.**
+- **Admin home usage panel:** for the last 30 days, events shared, average opens, copies and shares. No start date, no goal.
+- **Shared:** a one-off, published event with ≥1 open in the period. **Recurring series are excluded.**
 - **Opens:** see §6.4 for what counts.
-- **Admin home metric panel:** window start date, events shared in the window, average opens, copies and shares. Doubles as a README screenshot.
 
 ## 4. Users & access
 
@@ -160,7 +158,7 @@ Measured over **4 weeks**, starting on a date an admin sets once admins begin us
 - **Opens** are logged by a small **client-side beacon** after the page loads (crawlers don't run JS). Known bot user-agents (e.g. Facebook/Messenger crawlers) are ignored as a backstop. **Signed-in admins are not counted.** No deduping.
 - **Copy** and **Share** clicks are logged as separate stat types.
 - **No cookies, no personal data.**
-- Admins see per-event counts (e.g. "Opened 34 times · Copied 6 · Shared 4") plus the metric panel (§3).
+- Admins see per-event counts (e.g. "Opened 34 times · Copied 6 · Shared 4") plus the usage panel (§3).
 
 ### 6.5 Add to calendar
 
@@ -287,7 +285,7 @@ model RateLimitHit {
 }
 
 model Setting {
-  key   String @id     // e.g. "metricWindowStart"
+  key   String @id     // e.g. "churchAddress"
   value String
 }
 ```
@@ -299,16 +297,16 @@ model Setting {
 
 ## 8. Build order
 
-No deadline — work top to bottom. If time gets tight, the metric-critical items in step 3 come first.
+No deadline — work top to bottom.
 
 | Step  | Deliverable                                                                                                                                                                                                                                                                                     |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **1** | Project setup, Neon + Prisma, seed ministries & admins (emails from env vars), Auth.js Google sign-in with allowlist, admin event create/edit/publish/cancel/soft-delete, CI, first deploy to Vercel                                                                                            |
 | **2** | Public agenda list & event pages (mobile-first, 3+ months ahead, past events list, ended/cancelled banners), weekly recurrence + skip dates + seeded recurring events, all-day/multi-day, ministry filter with Church-wide, Cloudinary poster upload, contact person & attire                   |
-| **3** | **Metric-critical:** share cards (generated 1200×630, versioned URL), Copy announcement + Share button, open counter (beacon, bot/admin exclusion), admin metric panel                                                                                                                          |
+| **3** | Share cards (generated 1200×630, versioned URL), Copy announcement + Share button, open counter (beacon, bot/admin exclusion), admin usage panel                                                                                                                          |
 | **4** | Add to calendar (`.ics` + Google, series-aware)                                                                                                                                                                                                                                                 |
 | **5** | Printable QR pages + PNG download                                                                                                                                                                                                                                                               |
-| **6** | **Pre-launch user test:** the announcements volunteer and two older members try it on their own phones — find next Sunday's event, open an event from a pasted link, add it to their calendar. Fix what trips them up. **Then admins start using it and the 4-week measurement window begins.** |
+| **6** | **Pre-launch user test:** the announcements volunteer and two older members try it on their own phones — find next Sunday's event, open an event from a pasted link, add it to their calendar. Fix what trips them up. **Then admins start using it.** |
 | **7** | Prayer requests: form + privacy notice + /privacy page, honeypot + rate limit, prayer-team inbox, status workflow, email notifications, retention cron; soft-delete purge cron                                                                                                                  |
 
 **UI redesign (Nov 2026), done before step 6** so the user test runs on the UI that stays: Warm theme, landing page, agenda moved to `/events`, phone tab bar, event page reordered, poster viewer, prayer and privacy pages restyled (§6.2).
@@ -320,10 +318,10 @@ No deadline — work top to bottom. If time gets tight, the metric-critical item
 ## 9. Engineering & portfolio
 
 - **Public repo.** No real admin emails or private church details in code — seed values come from env vars.
-- **Tests:** Vitest on the tricky logic (recurrence expansion + skip dates, Manila time handling, announcement text, slug generation, metric calculation); Playwright smoke tests of the main public flow (landing page, navigation, agenda, prayer form) and of admin pages refusing signed-out visitors.
+- **Tests:** Vitest on the tricky logic (recurrence expansion + skip dates, Manila time handling, announcement text, slug generation, usage totals); Playwright smoke tests of the main public flow (landing page, navigation, agenda, prayer form) and of admin pages refusing signed-out visitors.
 - **CI:** GitHub Actions on push (typecheck, lint, tests).
 - **Monitoring:** free error tracking on server routes, plus a short "What to do if something looks wrong" note for admins (message the builder).
-- **README:** screenshots (share card in Messenger, agenda list, metric panel) and the actual success-metric results.
+- **README:** screenshots (share card in Messenger, agenda list, usage panel).
 
 ## 10. Roadmap
 
