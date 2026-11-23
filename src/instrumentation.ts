@@ -20,6 +20,9 @@ export function register() {
       stackFrameVariables: false,
     },
     beforeSend: scrubErrorEvent,
+    // These hooks only feed tracing spans, which we don't record. Turbopack bundles the package
+    // they load from, so leaving them on just logs "Cannot find package" at every start.
+    enableRuntimeChannelInjection: false,
   });
 }
 
