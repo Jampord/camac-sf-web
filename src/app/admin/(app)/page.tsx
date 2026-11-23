@@ -12,7 +12,7 @@ import { nextOccurrence } from "@/lib/events/recurrence";
 import { totalsByEvent } from "@/lib/events/stats";
 import { ChurchAddress } from "./church-address";
 import { EventList } from "./event-list";
-import { MetricPanel } from "./metric-panel";
+import { UsagePanel } from "./usage-panel";
 import { PrivacyContact } from "./privacy-contact";
 
 export const metadata: Metadata = { title: "Admin" };
@@ -92,7 +92,7 @@ async function AdminHome() {
         </Link>
       )}
 
-      <MetricPanel now={now} />
+      <UsagePanel now={now} />
 
       {upcoming.length > 0 ? (
         <EventList events={upcoming} now={now} stats={stats} />

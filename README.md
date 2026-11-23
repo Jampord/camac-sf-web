@@ -5,7 +5,7 @@ built to be shared into the channels members already use (the church Facebook pa
 group chat). Every event link unfurls into a rich preview card.
 
 > Status: **MVP built and live**: https://camac-sf-web.vercel.app. Next is the pre-launch user
-> test (build step 6), which starts the 4-week success-metric window. See the
+> test (build step 6). See the
 > [project brief](docs/PROJECT_BRIEF.md) for the full scope, decisions and roadmap.
 
 ## What it does
@@ -44,7 +44,7 @@ group chat). Every event link unfurls into a rich preview card.
 
 - Create events as drafts, then publish, edit, cancel (with a note), delete and restore within 30
   days. Weekly recurrence with skip dates, all-day and multi-day events, Cloudinary poster upload.
-- Open, copy and share counts per event, and the success-metric panel. No cookies or personal data
+- Open, copy and share counts per event, and totals for the last 30 days. No cookies or personal data
   are recorded; bots and signed-in admins aren't counted.
 - **Prayer team only:** an inbox with a New → Prayed → Answered workflow. The team gets an email
   saying only "New prayer request" and a link, never the request itself.
@@ -121,7 +121,7 @@ src/components/           shared UI (shadcn primitives in ui/)
 src/lib/church.ts         the landing page's own words and the church's Facebook links
 src/lib/dal.ts            requireAdmin() / requirePrayerTeam(): server-side access checks
 src/lib/db.ts             Prisma client (server-only)
-src/lib/events/           recurrence, agenda, announcement text, calendar, metric, share card
+src/lib/events/           recurrence, agenda, announcement text, calendar, usage totals, share card
 src/lib/prayer/           prayer form input, status workflow, notifications
 src/lib/schedule/         serving schedule roles and dates
 src/lib/time.ts           UTC <-> Asia/Manila helpers
@@ -141,18 +141,14 @@ e2e/                      Playwright tests
 
 - [x] **1** Setup, Neon + Prisma, seed, Google sign-in with allowlist, admin event CRUD, CI, first deploy
 - [x] **2** Public agenda + event pages, weekly recurrence, multi-day, ministry filter, posters
-- [x] **3** Share cards, Copy announcement / Share, open counter, metric panel
+- [x] **3** Share cards, Copy announcement / Share, open counter, usage panel
 - [x] **4** Add to calendar (`.ics` + Google)
 - [x] **5** Printable QR pages + PNG
-- [ ] **6** Pre-launch user test → start the 4-week measurement window
+- [ ] **6** Pre-launch user test
 - [x] **7** Prayer requests + retention/purge crons
 
 Also built: venue addresses with Maps links, server-side error tracking, and the serving schedule
 (admin entry is live; the members' view goes live after the user test).
-
-## Success metric
-
-Over 4 weeks: **at least 8 events shared, averaging 15+ opens each.** Results will be posted here.
 
 ## Something looks wrong?
 

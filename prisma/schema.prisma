@@ -125,6 +125,6 @@ model RateLimitHit {
 }
 
 model Setting {
-  key   String @id // e.g. "metricWindowStart"
+  key   String @id // e.g. "churchAddress"
   value String
 }
